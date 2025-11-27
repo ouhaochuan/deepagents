@@ -11,7 +11,62 @@ import dotenv
 from langchain_core.language_models import BaseChatModel
 from rich.console import Console
 
-dotenv.load_dotenv()
+###############自定义查找环境变量文件################
+
+from typing import Optional
+
+def load_env_with_fallback_verbose(required_vars: Optional[list] = None) -> Optional[str]:
+    """
+    增强版环境变量加载，带详细日志和必需变量验证
+    
+    Args:
+        required_vars: 必须存在的环境变量列表
+        
+    Returns:
+        加载的.env文件路径，如果没找到返回None
+    """
+    if required_vars is None:
+        required_vars = []
+    
+    search_paths = [
+        ("当前工作目录", Path.cwd() / '.env'),
+        ("用户配置目录", Path.home() / '.langchain-cli' / '.env')
+    ]
+    
+    print("🔍 开始查找 .env 文件...")
+    
+    for location_name, env_path in search_paths:
+        print(f"  检查 {location_name}: {env_path}")
+        
+        if env_path.exists() and env_path.is_file():
+            # 加载环境变量
+            dotenv.load_dotenv(env_path)
+            print(f"✅ 从 {location_name} 加载环境变量: {env_path}")
+            
+            # 验证必需变量
+            if required_vars:
+                missing_vars = []
+                for var in required_vars:
+                    if not os.getenv(var):
+                        missing_vars.append(var)
+                
+                if missing_vars:
+                    print(f"⚠️  警告: 以下必需变量未设置: {missing_vars}")
+                else:
+                    print("✅ 所有必需环境变量都已设置")
+            
+            return str(env_path)
+        else:
+            print(f"   ❌ 文件不存在")
+    
+    print("❌ 在所有搜索路径中均未找到 .env 文件")
+    return None
+
+# 指定必需的环境变量
+required_variables = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'OPENAI_MODEL']
+load_env_with_fallback_verbose(required_variables)
+
+###############################
 
 # Color scheme
 COLORS = {
@@ -356,8 +411,9 @@ def get_default_coding_instructions() -> str:
     These are the immutable base instructions that cannot be modified by the agent.
     Long-term memory (agent.md) is handled separately by the middleware.
     """
-    default_prompt_path = Path(__file__).parent / "default_agent_prompt.md"
-    return default_prompt_path.read_text()
+    # default_prompt_path = Path(__file__).parent / "default_agent_prompt.md"
+    default_prompt_path = Path(__file__).parent / "default_agent_prompt_zh.md"
+    return default_prompt_path.read_text(encoding='utf-8')
 
 
 def create_model() -> BaseChatModel:

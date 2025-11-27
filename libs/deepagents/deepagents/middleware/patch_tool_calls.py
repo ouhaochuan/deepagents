@@ -6,6 +6,7 @@ from langchain.agents.middleware import AgentMiddleware, AgentState
 from langchain_core.messages import ToolMessage
 from langgraph.runtime import Runtime
 from langgraph.types import Overwrite
+import os
 
 
 class PatchToolCallsMiddleware(AgentMiddleware):
@@ -41,4 +42,16 @@ class PatchToolCallsMiddleware(AgentMiddleware):
                             )
                         )
 
+        if os.environ.get("DEBUG_PATCH_TOOL_CALLS") == "true":
+          # 打印即将发送给LLM的消息
+          print("即将发送给LLM的消息:")
+          for i, msg in enumerate(patched_messages):
+            print(f"  消息 {i}: {type(msg).__name__}")
+            if hasattr(msg, 'content'):
+                print(f"    内容: {msg.content}")
+            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                print(f"    工具调用: {msg.tool_calls}")
+            if msg.type == "tool":
+                print(f"    工具名称: {getattr(msg, 'name', 'N/A')}")
+                print(f"    工具调用ID: {msg.tool_call_id}")
         return {"messages": Overwrite(patched_messages)}

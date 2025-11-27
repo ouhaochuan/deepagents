@@ -92,98 +92,100 @@ def reset_agent(agent_name: str, source_agent: str | None = None) -> None:
 
 
 def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str:
-    """Get the base system prompt for the agent.
+    """获取代理的基本系统提示。
 
-    Args:
-        assistant_id: The agent identifier for path references
-        sandbox_type: Type of sandbox provider ("modal", "runloop", "daytona").
-                     If None, agent is operating in local mode.
+    参数:
+        assistant_id: 代理标识符，用于路径引用
+        sandbox_type: 沙箱提供者类型 ("modal", "runloop", "daytona")。
+                     如果为None，则代理在本地模式下运行。
 
-    Returns:
-        The system prompt string (without agent.md content)
+    返回:
+        系统提示字符串（不包含agent.md内容）
     """
     agent_dir_path = f"~/.deepagents/{assistant_id}"
 
     if sandbox_type:
-        # Get provider-specific working directory
+        # 获取提供者特定的工作目录
 
         working_dir = get_default_working_dir(sandbox_type)
 
-        working_dir_section = f"""### Current Working Directory
+        working_dir_section = f"""### 当前工作目录
 
-You are operating in a **remote Linux sandbox** at `{working_dir}`.
+您正在 `{working_dir}` 的**远程Linux沙箱**中操作。
 
-All code execution and file operations happen in this sandbox environment.
+所有代码执行和文件操作都在此沙箱环境中进行。
 
-**Important:**
-- The CLI is running locally on the user's machine, but you execute code remotely
-- Use `{working_dir}` as your working directory for all operations
+**重要:**
+- CLI在用户本地机器上运行，但您在远程执行代码
+- 对所有操作使用 `{working_dir}` 作为您的工作目录
 
 """
     else:
         cwd = Path.cwd()
         working_dir_section = f"""<env>
-Working directory: {cwd}
+工作目录: {cwd}
 </env>
 
-### Current Working Directory
+### 当前工作目录
 
-The filesystem backend is currently operating in: `{cwd}`
+文件系统后端当前在: `{cwd}` 中运行
 
-### File System and Paths
+### 文件系统和路径
 
-**IMPORTANT - Path Handling:**
-- All file paths must be absolute paths (e.g., `{cwd}/file.txt`)
-- Use the working directory from <env> to construct absolute paths
-- Example: To create a file in your working directory, use `{cwd}/research_project/file.md`
-- Never use relative paths - always construct full absolute paths
+**重要 - 路径处理:**
+- 对于文件系统工具（ls、read_file等），请使用以 / 开头的虚拟路径
+- 根路径 (/) 映射到当前工作目录 (`{cwd}`)
+- 示例: 要访问工作目录中的文件，使用 `/file.txt`
+- 永远不要使用相对路径
+- 可以使用 ls 命令探索文件系统结构
+- 在 Windows 系统上，本地文件通过虚拟路径访问，例如：`/test.txt` 对应 `{cwd}\\test.txt`
 
 """
 
     return (
         working_dir_section
-        + f"""### Skills Directory
+        + f"""### 技能目录
 
-Your skills are stored at: `{agent_dir_path}/skills/`
-Skills may contain scripts or supporting files. When executing skill scripts with bash, use the real filesystem path:
-Example: `bash python {agent_dir_path}/skills/web-research/script.py`
+您的技能存储在: `{agent_dir_path}/skills/`
+技能可能包含脚本或支持文件。执行技能脚本时使用真实文件系统路径:
+示例: `bash python {agent_dir_path}/skills/web-research/script.py`
 
-### Human-in-the-Loop Tool Approval
+### 人类参与工具审批
 
-Some tool calls require user approval before execution. When a tool call is rejected by the user:
-1. Accept their decision immediately - do NOT retry the same command
-2. Explain that you understand they rejected the action
-3. Suggest an alternative approach or ask for clarification
-4. Never attempt the exact same rejected command again
+某些工具调用需要用户批准才能执行。当用户拒绝工具调用时:
+1. 立即接受他们的决定 - 不要重试相同命令
+2. 解释您理解他们拒绝了该操作
+3. 提供替代方法或询问澄清
+4. 永远不要再尝试完全相同的被拒绝命令
 
-Respect the user's decisions and work with them collaboratively.
+尊重用户的决定并与他们协作。
 
-### Web Search Tool Usage
+### 网络搜索工具使用
 
-When you use the web_search tool:
-1. The tool will return search results with titles, URLs, and content excerpts
-2. You MUST read and process these results, then respond naturally to the user
-3. NEVER show raw JSON or tool results directly to the user
-4. Synthesize the information from multiple sources into a coherent answer
-5. Cite your sources by mentioning page titles or URLs when relevant
-6. If the search doesn't find what you need, explain what you found and ask clarifying questions
+当您使用web_search工具时:
+1. 工具将返回带有标题、URL和内容摘录的搜索结果
+2. 您必须阅读并处理这些结果，然后自然地回应用户
+3. 永远不要直接向用户显示原始JSON或工具结果
+4. 将来自多个来源的信息综合成连贯的答案
+5. 必要时通过提及页面标题或URL来引用来源
+6. 如果搜索没有找到所需内容，解释您找到了什么并询问澄清问题
 
-The user only sees your text responses - not tool results. Always provide a complete, natural language answer after using web_search.
+用户只能看到您的文本回复 - 不是工具结果。使用web_search后始终提供完整、自然语言的答案。
 
-### Todo List Management
+### 待办事项列表管理
 
-When using the write_todos tool:
-1. Keep the todo list MINIMAL - aim for 3-6 items maximum
-2. Only create todos for complex, multi-step tasks that truly need tracking
-3. Break down work into clear, actionable items without over-fragmenting
-4. For simple tasks (1-2 steps), just do them directly without creating todos
-5. When first creating a todo list for a task, ALWAYS ask the user if the plan looks good before starting work
-   - Create the todos, let them render, then ask: "Does this plan look good?" or similar
-   - Wait for the user's response before marking the first todo as in_progress
-   - If they want changes, adjust the plan accordingly
-6. Update todo status promptly as you complete each item
+当使用write_todos工具时:
+1. 保持待办事项列表最小化 - 最多3-6个项目
+2. 仅为真正需要跟踪的复杂、多步骤任务创建待办事项
+3. 将工作分解为清晰、可操作的项目，避免过度细分
+4. 对于简单任务（1-2步），直接执行而不创建待办事项
+5. 首次为任务创建待办事项列表时，务必询问用户计划是否良好后再开始工作
+   - 创建待办事项，让它们渲染，然后询问："这个计划看起来好吗？"或类似问题
+   - 等待用户回应后再将第一个待办事项标记为in_progress
+   - 如果他们想要更改，请相应调整计划
+6. 在完成每个项目后及时更新待办事项状态
 
-The todo list is a planning tool - use it judiciously to avoid overwhelming the user with excessive task tracking."""
+待办事项列表是一个规划工具 - 明智地使用它以避免用过多的任务跟踪压倒用户。"""
     )
 
 
@@ -362,7 +364,7 @@ def create_agent_with_config(
         # ========== LOCAL MODE ==========
         # Backend: Local filesystem for code (no virtual routes)
         composite_backend = CompositeBackend(
-            default=FilesystemBackend(),  # Current working directory
+            default=FilesystemBackend(root_dir=".", virtual_mode=True),  # Current working directory
             routes={},  # No virtualization - use real paths
         )
 

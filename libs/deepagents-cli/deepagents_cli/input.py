@@ -3,6 +3,7 @@
 import asyncio
 import os
 import re
+import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -177,7 +178,11 @@ def create_prompt_session(_assistant_id: str, session_state: SessionState) -> Pr
     """Create a configured PromptSession with all features."""
     # Set default editor if not already set
     if "EDITOR" not in os.environ:
-        os.environ["EDITOR"] = "nano"
+      # Use platform-appropriate default editor
+      if sys.platform == 'win32':
+          os.environ["EDITOR"] = "notepad"
+      else:
+          os.environ["EDITOR"] = "nano"
 
     # Create key bindings
     kb = KeyBindings()
@@ -266,7 +271,7 @@ def create_prompt_session(_assistant_id: str, session_state: SessionState) -> Pr
     # Ctrl+E to open in external editor
     @kb.add("c-e")
     def _(event) -> None:
-        """Open the current input in an external editor (nano by default)."""
+        """Open the current input in an external editor (notepad on Windows, nano on Unix)."""
         event.current_buffer.open_in_editor()
 
     # Backspace handler to retrigger completions after deletion
