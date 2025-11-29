@@ -468,7 +468,13 @@ def _ls_tool_generator(
         """Synchronous wrapper for ls tool."""
         resolved_backend = _get_backend(backend, runtime)
         validated_path = _validate_path(path)
+        
+        if os.getenv("DEBUG_FILE_SYSTEM") == "true":
+          print(f"ls: {validated_path}")
         infos = resolved_backend.ls_info(validated_path)
+        for fi in infos:
+            if os.getenv("DEBUG_FILE_SYSTEM") == "true":
+              print(f"ls infos: {fi}")
         paths = [fi.get("path", "") for fi in infos]
         result = truncate_if_too_long(paths)
         return str(result)

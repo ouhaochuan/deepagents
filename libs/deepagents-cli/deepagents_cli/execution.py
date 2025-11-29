@@ -252,10 +252,13 @@ async def execute_task(
         context_parts = [prompt_text, "\n\n## Referenced Files\n"]
         for file_path in mentioned_files:
             try:
-                content = file_path.read_text()
+                content = file_path.read_text(encoding="utf-8")
+                print(f"\n读取文件内容: {file_path}")
+                print(f"内容长度: {len(content)}\n")
                 # Limit file content to reasonable size
                 if len(content) > 50000:
                     content = content[:50000] + "\n... (file truncated)"
+                    print(f"截断为 {len(content)} 个字符，这里应该要使用代码总结工具或者让AI分块读取直到找到需要的部分")
                 context_parts.append(
                     f"\n### {file_path.name}\nPath: `{file_path}`\n```\n{content}\n```"
                 )

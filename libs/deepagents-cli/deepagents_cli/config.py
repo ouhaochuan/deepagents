@@ -30,7 +30,7 @@ def load_env_with_fallback_verbose(required_vars: Optional[list] = None) -> Opti
     
     search_paths = [
         ("当前工作目录", Path.cwd() / '.env'),
-        ("用户配置目录", Path.home() / '.langchain-cli' / '.env')
+        ("用户配置目录", Path.home() / '.deepagents-cli' / '.env')
     ]
     
     print("🔍 开始查找 .env 文件...")
