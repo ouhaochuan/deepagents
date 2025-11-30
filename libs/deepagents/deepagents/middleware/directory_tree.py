@@ -1,12 +1,17 @@
 """Middleware for providing directory tree functionality to an agent."""
 from pathlib import Path
 from typing import Any, Dict, List, Union, Callable, Awaitable
+import os
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.types import Command
 from langgraph.types import Overwrite
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 
 def get_directory_tree(path: Path, max_depth: int = 3, current_depth: int = 0) -> dict[str, Any]:
@@ -71,7 +76,18 @@ class DirectoryTreeMiddleware(AgentMiddleware):
     
     def __init__(self) -> None:
         """Initialize the middleware with the list_directory_tree tool."""
+        # 检查是否启用目录树中间件的打印输出
+        self.print_enabled = os.getenv('DIRECTORY_TREE_PRINT_ENABLED', 'true').lower() == 'true'
         self.tools = [list_directory_tree]
+    
+    def _conditional_print(self, message: str) -> None:
+        """条件性打印消息
+        
+        Args:
+            message: 要打印的消息
+        """
+        if self.print_enabled:
+            print(message)
     
     # def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
     #     """Remove list_directory_tree tool calls and results from messages after model execution.
@@ -83,12 +99,12 @@ class DirectoryTreeMiddleware(AgentMiddleware):
     #     Returns:
     #         Updated state with filtered messages, or None if no changes needed
     #     """
-    #     print("DirectoryTreeMiddleware: After model call")
+    #     self._conditional_print("DirectoryTreeMiddleware: After model call")
     #     if "messages" not in state or not state["messages"]:
     #         return None
     #         
     #     messages = state["messages"]
-    #     print(f'len(messages): {len(messages)}')
+    #     self._conditional_print(f'len(messages): {len(messages)}')
     #
     #     if len(messages) < 3:  # 确保消息列表至少有三个元素
     #         return None
@@ -109,7 +125,7 @@ class DirectoryTreeMiddleware(AgentMiddleware):
     #             second_last_msg.tool_call_id in tool_call_ids):
     #             # 移除倒数第三条和倒数第二条消息
     #             new_messages = messages[:-3] + messages[-1:]
-    #             print(f'len(new_messages): {len(new_messages)}')
+    #             self._conditional_print(f'len(new_messages): {len(new_messages)}')
     #             # return Command(update={"messages": new_messages})
     #             return {"messages": Overwrite(new_messages)}
     #     
@@ -125,12 +141,14 @@ class DirectoryTreeMiddleware(AgentMiddleware):
         Returns:
             Updated state with modified tool message content, or None if no changes needed
         """
-        print("DirectoryTreeMiddleware: After model call")
+        # 注意：开关只控制打印输出，不影响对ToolMessage的处理逻辑
+        self._conditional_print("DirectoryTreeMiddleware: After model call")
+            
         if "messages" not in state or not state["messages"]:
             return None
             
         messages = state["messages"]
-        print(f'len(messages): {len(messages)}')
+        self._conditional_print(f'len(messages): {len(messages)}')
 
         if len(messages) < 3:  # 确保消息列表至少有三个元素
             return None
@@ -161,7 +179,7 @@ class DirectoryTreeMiddleware(AgentMiddleware):
                     name=second_last_msg.name
                 )
                 
-                print(f'Modified tool message content')
+                self._conditional_print(f'Modified tool message content')
                 return {"messages": Overwrite(new_messages)}
         
         return None

@@ -3,18 +3,30 @@ import json
 from datetime import datetime
 from typing import Callable, Awaitable, Dict, Any
 import os
+from dotenv import load_dotenv
 
+# 加载环境变量
+load_dotenv()
 
 class PromptLoggerMiddleware(AgentMiddleware):
     def __init__(self):
-         # 在用户主目录下创建.deepagents-cli/logs目录
-        home_dir = os.path.expanduser("~")
-        self.log_dir = os.path.join(home_dir, ".deepagents-cli", "logs")
-        os.makedirs(self.log_dir, exist_ok=True)
+         # 检查是否启用日志记录
+        self.enabled = os.getenv('PROMPT_LOGGER_ENABLED', 'true').lower() == 'true'
+        
+        if self.enabled:
+            # 在用户主目录下创建.deepagents-cli/logs目录
+            home_dir = os.path.expanduser("~")
+            self.log_dir = os.path.join(home_dir, ".deepagents-cli", "logs")
+            os.makedirs(self.log_dir, exist_ok=True)
+        
         self.call_count = 0
     
     def _log_request(self, request: ModelRequest):
         """记录请求信息的通用方法"""
+        # 如果未启用，则直接返回
+        if not self.enabled:
+            return
+            
         self.call_count += 1
         
         # 获取state的实际类型名称
@@ -85,6 +97,10 @@ class PromptLoggerMiddleware(AgentMiddleware):
     
     def _log_response(self, state: Dict[str, Any]):
         """在after_model中记录响应信息的方法"""
+        # 如果未启用，则直接返回
+        if not self.enabled:
+            return
+            
         # 获取最新的消息作为响应
         messages = state.get('messages', [])
         if not messages:
@@ -145,8 +161,9 @@ class PromptLoggerMiddleware(AgentMiddleware):
         handler: Callable[[ModelRequest], ModelResponse],
     ) -> ModelResponse:
         """拦截模型调用以记录提示信息"""
-        print("PromptLoggerMiddleware: Wrap model call...")
-        self._log_request(request)
+        if self.enabled:
+            print("PromptLoggerMiddleware: Wrap model call...")
+            self._log_request(request)
         # 调用原始处理函数并返回结果
         return handler(request)
     
@@ -156,13 +173,15 @@ class PromptLoggerMiddleware(AgentMiddleware):
         handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
     ) -> ModelResponse:
         """异步拦截模型调用以记录提示信息"""
-        print("PromptLoggerMiddleware: Async wrap model call...")
-        self._log_request(request)
+        if self.enabled:
+            print("PromptLoggerMiddleware: Async wrap model call...")
+            self._log_request(request)
         # 异步调用原始处理函数并返回结果
         return await handler(request)
     
     def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
         """在模型调用后记录响应信息"""
-        print("PromptLoggerMiddleware: After model call...")
-        self._log_response(state)
+        if self.enabled:
+            print("PromptLoggerMiddleware: After model call...")
+            self._log_response(state)
         return None
