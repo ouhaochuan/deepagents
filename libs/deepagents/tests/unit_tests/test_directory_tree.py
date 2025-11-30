@@ -58,20 +58,26 @@ class TestDirectoryTreeMiddleware:
                 ),
                 ToolMessage(
                     content='{"current_directory": "/home/user", "tree": {"name": "user"}}',
-                    tool_call_id=tool_call_id
+                    tool_call_id=tool_call_id,
+                    name="list_directory_tree"
                 ),
                 AIMessage(content="Here is the directory tree you requested.")
             ]
         }
         
         result = middleware.after_model(state, Mock())
-        assert isinstance(result, Command)
-        assert "messages" in result.update
-        # Should remove the tool call and tool result messages, keeping first and last
-        assert len(result.update["messages"]) == 2
-        assert isinstance(result.update["messages"][0], HumanMessage)
-        assert isinstance(result.update["messages"][1], AIMessage)
-        assert result.update["messages"][1].content == "Here is the directory tree you requested."
+        # Should modify the tool message content, keeping all messages
+        assert result is not None
+        assert "messages" in result
+        # Should keep all messages
+        assert len(result["messages"].value) == 4
+        assert isinstance(result["messages"].value[0], HumanMessage)
+        assert isinstance(result["messages"].value[1], AIMessage)
+        assert isinstance(result["messages"].value[2], ToolMessage)
+        assert isinstance(result["messages"].value[3], AIMessage)
+        # Check that ToolMessage content has been modified
+        assert result["messages"].value[2].content == "list_directory_tree工具已正确返回并且你已经正确处理了该工具返回的内容，但因为内容过长，已被清理掉，如果还需要该结果请重新执行list_directory_tree工具来获取。"
+        assert result["messages"].value[3].content == "Here is the directory tree you requested."
     
     def test_after_model_with_non_list_directory_tree_call(self):
         """Test after_model when there's a different tool call."""
@@ -122,7 +128,8 @@ class TestDirectoryTreeMiddleware:
                 ),
                 ToolMessage(
                     content='{"result": "success"}',
-                    tool_call_id="different_tool_call_id"
+                    tool_call_id="different_tool_call_id",
+                    name="list_directory_tree"
                 ),
                 AIMessage(content="Some message.")
             ]

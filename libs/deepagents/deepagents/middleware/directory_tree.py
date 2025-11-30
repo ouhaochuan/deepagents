@@ -73,15 +73,57 @@ class DirectoryTreeMiddleware(AgentMiddleware):
         """Initialize the middleware with the list_directory_tree tool."""
         self.tools = [list_directory_tree]
     
+    # def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
+    #     """Remove list_directory_tree tool calls and results from messages after model execution.
+    #     
+    #     Args:
+    #         state: Current agent state containing messages
+    #         runtime: Runtime context
+    #         
+    #     Returns:
+    #         Updated state with filtered messages, or None if no changes needed
+    #     """
+    #     print("DirectoryTreeMiddleware: After model call")
+    #     if "messages" not in state or not state["messages"]:
+    #         return None
+    #         
+    #     messages = state["messages"]
+    #     print(f'len(messages): {len(messages)}')
+    #
+    #     if len(messages) < 3:  # 确保消息列表至少有三个元素
+    #         return None
+    #
+    #    # 检查倒数第三条和倒数第二条消息是否为list_directory_tree工具调用及其结果
+    #     third_last_msg = messages[-3]
+    #     second_last_msg = messages[-2]
+    #     
+    #     # 检查倒数第三条消息是否为list_directory_tree工具调用
+    #     if (isinstance(third_last_msg, AIMessage) and third_last_msg.tool_calls and 
+    #         any(tc["name"] == "list_directory_tree" for tc in third_last_msg.tool_calls)):
+    #         
+    #         # 获取工具调用ID
+    #         tool_call_ids = [tc["id"] for tc in third_last_msg.tool_calls if tc["name"] == "list_directory_tree"]
+    #         
+    #         # 检查倒数第二条消息是否为对应的工具结果
+    #         if (isinstance(second_last_msg, ToolMessage) and 
+    #             second_last_msg.tool_call_id in tool_call_ids):
+    #             # 移除倒数第三条和倒数第二条消息
+    #             new_messages = messages[:-3] + messages[-1:]
+    #             print(f'len(new_messages): {len(new_messages)}')
+    #             # return Command(update={"messages": new_messages})
+    #             return {"messages": Overwrite(new_messages)}
+    #     
+    #     return None
+    
     def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
-        """Remove list_directory_tree tool calls and results from messages after model execution.
+        """Modify list_directory_tree tool message content after model execution.
         
         Args:
             state: Current agent state containing messages
             runtime: Runtime context
             
         Returns:
-            Updated state with filtered messages, or None if no changes needed
+            Updated state with modified tool message content, or None if no changes needed
         """
         print("DirectoryTreeMiddleware: After model call")
         if "messages" not in state or not state["messages"]:
@@ -93,7 +135,7 @@ class DirectoryTreeMiddleware(AgentMiddleware):
         if len(messages) < 3:  # 确保消息列表至少有三个元素
             return None
 
-       # 检查倒数第三条和倒数第二条消息是否为list_directory_tree工具调用及其结果
+        # 检查倒数第三条和倒数第二条消息是否为list_directory_tree工具调用及其结果
         third_last_msg = messages[-3]
         second_last_msg = messages[-2]
         
@@ -106,11 +148,20 @@ class DirectoryTreeMiddleware(AgentMiddleware):
             
             # 检查倒数第二条消息是否为对应的工具结果
             if (isinstance(second_last_msg, ToolMessage) and 
-                second_last_msg.tool_call_id in tool_call_ids):
-                # 移除倒数第三条和倒数第二条消息
-                new_messages = messages[:-3] + messages[-1:]
-                print(f'len(new_messages): {len(new_messages)}')
-                # return Command(update={"messages": new_messages})
+                second_last_msg.tool_call_id in tool_call_ids and
+                second_last_msg.name == "list_directory_tree"):
+                # 修改工具消息内容
+                new_content = "list_directory_tree工具已正确返回并且你已经正确处理了该工具返回的内容，但因为内容过长，已被清理掉，如果还需要该结果请重新执行list_directory_tree工具来获取。"
+                
+                # 创建新的消息列表，只替换倒数第二条消息的内容
+                new_messages = list(messages)
+                new_messages[-2] = ToolMessage(
+                    content=new_content,
+                    tool_call_id=second_last_msg.tool_call_id,
+                    name=second_last_msg.name
+                )
+                
+                print(f'Modified tool message content')
                 return {"messages": Overwrite(new_messages)}
         
         return None
