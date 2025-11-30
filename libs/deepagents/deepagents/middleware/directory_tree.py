@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Union, Callable, Awaitable
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
+from langgraph.types import Command
+from langgraph.types import Overwrite
 
 
 def get_directory_tree(path: Path, max_depth: int = 3, current_depth: int = 0) -> dict[str, Any]:
@@ -71,122 +73,44 @@ class DirectoryTreeMiddleware(AgentMiddleware):
         """Initialize the middleware with the list_directory_tree tool."""
         self.tools = [list_directory_tree]
     
-    def _extract_tool_calls_to_remove(self, messages: List[Any]) -> List[str]:
-        """从消息中提取需要移除的工具调用ID列表
+    def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
+        """Remove list_directory_tree tool calls and results from messages after model execution.
         
         Args:
-            messages: 消息列表
+            state: Current agent state containing messages
+            runtime: Runtime context
             
         Returns:
-            需要移除的工具调用ID列表
+            Updated state with filtered messages, or None if no changes needed
         """
-        if not messages:
-            return []
+        print("DirectoryTreeMiddleware: After model call")
+        if "messages" not in state or not state["messages"]:
+            return None
             
-        # 获取最新的AI消息
-        last_message = messages[-1]
-        tool_calls_to_remove = []
+        messages = state["messages"]
+        print(f'len(messages): {len(messages)}')
+
+        if len(messages) < 3:  # 确保消息列表至少有三个元素
+            return None
+
+       # 检查倒数第三条和倒数第二条消息是否为list_directory_tree工具调用及其结果
+        third_last_msg = messages[-3]
+        second_last_msg = messages[-2]
         
-        if isinstance(last_message, AIMessage) and last_message.tool_calls:
-            for tool_call in last_message.tool_calls:
-                if tool_call["name"] == "list_directory_tree":
-                    tool_calls_to_remove.append(tool_call["id"])
-                    
-        return tool_calls_to_remove
-    
-    def _create_post_processor(self, tool_calls_to_remove: List[str]) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
-        """创建用于移除工具调用消息的后处理器
-        
-        Args:
-            tool_calls_to_remove: 需要移除的工具调用ID列表
+        # 检查倒数第三条消息是否为list_directory_tree工具调用
+        if (isinstance(third_last_msg, AIMessage) and third_last_msg.tool_calls and 
+            any(tc["name"] == "list_directory_tree" for tc in third_last_msg.tool_calls)):
             
-        Returns:
-            后处理器函数
-        """
-        def post_process_messages(state: Dict[str, Any]) -> Dict[str, Any]:
-            if "messages" not in state:
-                return state
-                
-            new_messages = []
-            i = 0
-            while i < len(state["messages"]):
-                msg = state["messages"][i]
-                
-                # 检查是否是需要移除的工具调用消息
-                if (isinstance(msg, AIMessage) and msg.tool_calls and 
-                    any(tc["id"] in tool_calls_to_remove for tc in msg.tool_calls)):
-                    # 跳过这个AIMessage和后续相关的ToolMessage
-                    i += 1  # 跳过AIMessage
-                    
-                    # 继续跳过所有相关的ToolMessage
-                    while i < len(state["messages"]):
-                        next_msg = state["messages"][i]
-                        if (isinstance(next_msg, ToolMessage) and 
-                            next_msg.tool_call_id in tool_calls_to_remove):
-                            i += 1  # 跳过ToolMessage
-                        else:
-                            new_messages.append(next_msg)
-                            i += 1
-                else:
-                    new_messages.append(msg)
-                    i += 1
+            # 获取工具调用ID
+            tool_call_ids = [tc["id"] for tc in third_last_msg.tool_calls if tc["name"] == "list_directory_tree"]
             
-            return {"messages": new_messages}
-            
-        return post_process_messages
-    
-    def _process_response(self, request: ModelRequest, response: ModelResponse) -> ModelResponse:
-        """处理响应，添加后处理器以移除相关工具调用消息
+            # 检查倒数第二条消息是否为对应的工具结果
+            if (isinstance(second_last_msg, ToolMessage) and 
+                second_last_msg.tool_call_id in tool_call_ids):
+                # 移除倒数第三条和倒数第二条消息
+                new_messages = messages[:-3] + messages[-1:]
+                print(f'len(new_messages): {len(new_messages)}')
+                # return Command(update={"messages": new_messages})
+                return {"messages": Overwrite(new_messages)}
         
-        Args:
-            request: 模型请求
-            response: 模型响应
-            
-        Returns:
-            处理后的模型响应
-        """
-        # 获取所有消息
-        messages = list(request.messages)
-        # 检查响应是否包含消息并相应处理
-        if hasattr(response, 'message') and response.message:
-            messages.append(response.message)
-        elif hasattr(response, 'messages') and response.messages:
-            messages.extend(response.messages)
-            
-        # 检查是否有使用list_directory_tree工具的调用
-        tool_calls_to_remove = self._extract_tool_calls_to_remove(messages)
-        
-        # 如果有相关的工具调用，添加后处理器
-        if tool_calls_to_remove:
-            post_processor = self._create_post_processor(tool_calls_to_remove)
-            
-            # 将处理函数附加到响应中
-            if not hasattr(response, 'post_processors'):
-                response.post_processors = []
-            response.post_processors.append(post_processor)
-        
-        return response
-    
-    def wrap_model_call(
-        self, 
-        request: ModelRequest, 
-        handler: Callable[[ModelRequest], ModelResponse]
-    ) -> ModelResponse:
-        """Process model response to remove directory tree tool calls and results."""
-        # 先调用原始处理器获取响应
-        response = handler(request)
-        
-        # 处理响应
-        return self._process_response(request, response)
-    
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]]
-    ) -> ModelResponse:
-        """Async process model response to remove directory tree tool calls and results."""
-        # 先调用原始处理器获取响应
-        response = await handler(request)
-        
-        # 处理响应
-        return self._process_response(request, response)
+        return None

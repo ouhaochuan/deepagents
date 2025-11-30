@@ -114,6 +114,7 @@ def create_deep_agent(
         keep = ("messages", 6)
 
     deepagent_middleware = [
+        PromptLoggerMiddleware(),
         TodoListMiddleware(),
         FilesystemMiddleware(backend=backend),
         SubAgentMiddleware(
@@ -144,7 +145,6 @@ def create_deep_agent(
         AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore"),
         PatchToolCallsMiddleware(),
         DirectoryTreeMiddleware(),
-        PromptLoggerMiddleware(),
     ]
     if middleware:
         deepagent_middleware.extend(middleware)
