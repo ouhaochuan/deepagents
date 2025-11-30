@@ -11,8 +11,9 @@ from langgraph.types import Overwrite
 
 from deepagents.utils import load_env_with_fallback_verbose
 
-# 加载环境变量
-load_env_with_fallback_verbose()
+# 加载环境变量（仅当DIRECTORY_TREE_PRINT_ENABLED未设置时）
+if os.getenv('DIRECTORY_TREE_PRINT_ENABLED') is None:
+    load_env_with_fallback_verbose()
 
 
 def get_directory_tree(path: Path, max_depth: int = 3, current_depth: int = 0) -> dict[str, Any]:

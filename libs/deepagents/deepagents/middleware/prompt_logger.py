@@ -6,8 +6,9 @@ import os
 
 from deepagents.utils import load_env_with_fallback_verbose
 
-# 加载环境变量
-load_env_with_fallback_verbose()
+# 加载环境变量（仅当PROMPT_LOGGER_ENABLED未设置时）
+if os.getenv('PROMPT_LOGGER_ENABLED') is None:
+    load_env_with_fallback_verbose()
 
 class PromptLoggerMiddleware(AgentMiddleware):
     def __init__(self):
