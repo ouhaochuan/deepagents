@@ -137,8 +137,7 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str
 - 根路径 (/) 映射到当前工作目录 (`{cwd}`)
 - 示例: 要访问工作目录中的文件，使用 `/file.txt`
 - 永远不要使用相对路径
-- 优先使用 list_directory_tree 工具来探索工作目录的目录文件结构
-- 另外也可以使用 ls 命令探索文件系统结构
+- 使用 list_directory_tree 工具来探索工作目录的目录文件结构
 - 在 Windows 系统上，本地文件通过虚拟路径访问，例如：`/test.txt` 对应 `{cwd}\\test.txt`
 
 """

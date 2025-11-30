@@ -40,7 +40,7 @@ EMPTY_CONTENT_WARNING = "System reminder: File exists but has empty contents"
 MAX_LINE_LENGTH = 2000
 LINE_NUMBER_WIDTH = 6
 DEFAULT_READ_OFFSET = 0
-DEFAULT_READ_LIMIT = 500
+DEFAULT_READ_LIMIT = 10000
 
 
 class FileData(TypedDict):
@@ -192,12 +192,12 @@ READ_FILE_TOOL_DESCRIPTION = """从文件系统中读取文件。您可以通过
 
 用法：
 - file_path 参数必须是绝对路径，而不是相对路径
-- 默认情况下，它从文件开头开始读取最多 500 行
+- 默认情况下，它从文件开头开始读取最多 10000 行
 - **对于大文件和代码库探索很重要**：使用 offset 和 limit 参数进行分页以避免上下文溢出
-  - 首次扫描：read_file(path, limit=100) 查看文件结构
-  - 读取更多部分：read_file(path, offset=100, limit=200) 读取接下来的 200 行
+  - 首次扫描：read_file(path, limit=10000) 查看文件结构
+  - 读取更多部分：read_file(path, offset=10000, limit=200) 读取接下来的 200 行
   - 只有在需要编辑时才省略 limit（读取完整文件）
-- 指定 offset 和 limit：read_file(path, offset=0, limit=100) 读取前 100 行
+- 指定 offset 和 limit：read_file(path, offset=0, limit=10000) 读取前 10000 行
 - 任何超过 2000 个字符的行将被截断
 - 结果使用 cat -n 格式返回，行号从 1 开始
 - 您有能力在单个响应中调用多个工具。批量推测性地读取多个可能有用的文件总是更好的选择。
@@ -402,7 +402,7 @@ EXECUTE_TOOL_DESCRIPTION = """在沙箱环境中执行给定命令，并进行�
 # - edit_file: edit a file in the filesystem
 # - glob: find files matching a pattern (e.g., "**/*.py")
 # - grep: search for text within files"""
-FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `ls`、`read_file`、`write_file`、`edit_file`、`glob`、`grep`
+FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `list_directory_tree`、`ls`、`read_file`、`write_file`、`edit_file`、`glob`、`grep`
 
 您可以使用这些工具与文件系统进行交互。
 所有文件路径必须以/开头。
@@ -410,9 +410,10 @@ FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `ls`、`read_file`、`write_
 文件操作的重要指南：
 - 始终使用以/开头的虚拟路径（例如，/file.txt）
 - 根路径(/)映射到当前工作目录
-- 使用ls命令探索文件系统结构
+- 当需要查找文件时，使用list_directory_tree工具探索文件系统结构
 - 不要尝试查找父目录；仅在当前工作目录内搜索或使用绝对路径以避免意外结果
 
+- list_directory_tree: 列出当前工作目录的目录及文件树结构
 - ls：列出目录中的文件（需要绝对路径）
 - read_file：从文件系统读取文件
 - write_file：向文件系统中的文件写入
