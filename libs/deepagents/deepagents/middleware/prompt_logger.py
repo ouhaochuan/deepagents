@@ -75,9 +75,9 @@ class PromptLoggerMiddleware(AgentMiddleware):
                 md_content.append(f"**Tool Call ID**: {getattr(msg, 'tool_call_id')}")
                 md_content.append(f"")
         
-        # 保存到文件，文件名加上时间戳，时间放开头方便排序
+        # 保存到文件，文件名加上时间戳，将call放到最后
         timestamp_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = os.path.join(self.log_dir, f"{timestamp_filename}_call_{self.call_count:03d}.md")
+        log_file = os.path.join(self.log_dir, f"{timestamp_filename}_{self.call_count:03d}_call.md")
         with open(log_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(md_content))
         
@@ -131,9 +131,9 @@ class PromptLoggerMiddleware(AgentMiddleware):
                 md_content.append(f"**Tool Call ID**: {getattr(msg, 'tool_call_id')}")
                 md_content.append(f"")
         
-        # 保存到文件，文件名加上时间戳，时间放开头方便排序
+        # 保存到文件，文件名加上时间戳，将response放到最后
         timestamp_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = os.path.join(self.log_dir, f"{timestamp_filename}_response_{self.call_count:03d}.md")
+        log_file = os.path.join(self.log_dir, f"{timestamp_filename}_{self.call_count:03d}_response.md")
         with open(log_file, 'w', encoding='utf-8') as f:
             f.write('\n'.join(md_content))
         
