@@ -8,10 +8,11 @@ from langchain.tools import tool
 from langchain_core.messages import AIMessage, ToolMessage
 from langgraph.types import Command
 from langgraph.types import Overwrite
-from dotenv import load_dotenv
+
+from deepagents.utils import load_env_with_fallback_verbose
 
 # 加载环境变量
-load_dotenv()
+load_env_with_fallback_verbose()
 
 
 def get_directory_tree(path: Path, max_depth: int = 3, current_depth: int = 0) -> dict[str, Any]:

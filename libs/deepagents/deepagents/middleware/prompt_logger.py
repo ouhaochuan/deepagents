@@ -3,10 +3,11 @@ import json
 from datetime import datetime
 from typing import Callable, Awaitable, Dict, Any
 import os
-from dotenv import load_dotenv
+
+from deepagents.utils import load_env_with_fallback_verbose
 
 # 加载环境变量
-load_dotenv()
+load_env_with_fallback_verbose()
 
 class PromptLoggerMiddleware(AgentMiddleware):
     def __init__(self):
