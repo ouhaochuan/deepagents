@@ -24,6 +24,7 @@ from deepagents_cli.config import COLORS, config, console, get_default_coding_in
 from deepagents_cli.integrations.sandbox_factory import get_default_working_dir
 from deepagents_cli.shell import ShellMiddleware
 from deepagents_cli.skills import SkillsMiddleware
+from deepagents_cli.prompt_logger import PromptLoggerWrapperMiddleware
 
 
 def list_agents() -> None:
@@ -380,6 +381,7 @@ def create_agent_with_config(
                 workspace_root=str(Path.cwd()),
                 env=os.environ,
             ),
+            PromptLoggerWrapperMiddleware(),
         ]
     else:
         # ========== REMOTE SANDBOX MODE ==========
@@ -399,6 +401,7 @@ def create_agent_with_config(
                 assistant_id=assistant_id,
                 project_skills_dir=project_skills_dir,
             ),
+            PromptLoggerWrapperMiddleware(),
         ]
 
     # Get the system prompt (sandbox-aware and with skills)

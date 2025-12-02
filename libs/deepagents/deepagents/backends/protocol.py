@@ -195,14 +195,14 @@ class BackendProtocol(abc.ABC):
         self,
         file_path: str,
         offset: int = 0,
-        limit: int = 2000,
+        limit: int = 10000,
     ) -> str:
         """Read file content with line numbers.
 
         Args:
             file_path: Absolute path to the file to read. Must start with '/'.
             offset: Line number to start reading from (0-indexed). Default: 0.
-            limit: Maximum number of lines to read. Default: 2000.
+            limit: Maximum number of lines to read. Default: 10000.
 
         Returns:
             String containing file content formatted with line numbers (cat -n format),
@@ -212,8 +212,8 @@ class BackendProtocol(abc.ABC):
 
         !!! note
             - Use pagination (offset/limit) for large files to avoid context overflow
-            - First scan: `read(path, limit=100)` to see file structure
-            - Read more: `read(path, offset=100, limit=200)` for next section
+            - First scan: `read(path, limit=10000)` to see file structure
+            - Read more: `read(path, offset=10000, limit=2000)` for next section
             - ALWAYS read a file before editing it
             - If file exists but is empty, you'll receive a system reminder warning
         """

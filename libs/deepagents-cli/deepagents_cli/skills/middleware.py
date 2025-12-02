@@ -53,49 +53,93 @@ class SkillsStateUpdate(TypedDict):
 
 
 # Skills System Documentation
+# SKILLS_SYSTEM_PROMPT = """
+
+# ## Skills System
+
+# You have access to a skills library that provides specialized capabilities and domain knowledge.
+
+# {skills_locations}
+
+# **Available Skills:**
+
+# {skills_list}
+
+# **How to Use Skills (Progressive Disclosure):**
+
+# Skills follow a **progressive disclosure** pattern - you know they exist (name + description above), but you only read the full instructions when needed:
+
+# 1. **Recognize when a skill applies**: Check if the user's task matches any skill's description
+# 2. **Read the skill's full instructions**: The skill list above shows the exact path to use with read_file
+# 3. **Follow the skill's instructions**: SKILL.md contains step-by-step workflows, best practices, and examples
+# 4. **Access supporting files**: Skills may include Python scripts, configs, or reference docs - use absolute paths
+
+# **When to Use Skills:**
+# - When the user's request matches a skill's domain (e.g., "research X" → web-research skill)
+# - When you need specialized knowledge or structured workflows
+# - When a skill provides proven patterns for complex tasks
+
+# **Skills are Self-Documenting:**
+# - Each SKILL.md tells you exactly what the skill does and how to use it
+# - The skill list above shows the full path for each skill's SKILL.md file
+
+# **Executing Skill Scripts:**
+# Skills may contain Python scripts or other executable files. Always use absolute paths from the skill list.
+
+# **Example Workflow:**
+
+# User: "Can you research the latest developments in quantum computing?"
+
+# 1. Check available skills above → See "web-research" skill with its full path
+# 2. Read the skill using the path shown in the list
+# 3. Follow the skill's research workflow (search → organize → synthesize)
+# 4. Use any helper scripts with absolute paths
+
+# Remember: Skills are tools to make you more capable and consistent. When in doubt, check if a skill exists for the task!
+# """
 SKILLS_SYSTEM_PROMPT = """
 
-## Skills System
+## 技能系统
 
-You have access to a skills library that provides specialized capabilities and domain knowledge.
+你可以访问一个技能库，它提供了专业能力和领域知识。
 
 {skills_locations}
 
-**Available Skills:**
+**可用技能：**
 
 {skills_list}
 
-**How to Use Skills (Progressive Disclosure):**
+**如何使用技能（渐进式披露）：**
 
-Skills follow a **progressive disclosure** pattern - you know they exist (name + description above), but you only read the full instructions when needed:
+技能遵循**渐进式披露**模式 - 你知道它们的存在（上面的名称+描述），但只有在需要时才阅读完整说明：
 
-1. **Recognize when a skill applies**: Check if the user's task matches any skill's description
-2. **Read the skill's full instructions**: The skill list above shows the exact path to use with read_file
-3. **Follow the skill's instructions**: SKILL.md contains step-by-step workflows, best practices, and examples
-4. **Access supporting files**: Skills may include Python scripts, configs, or reference docs - use absolute paths
+1. **识别何时应用技能**：检查用户的任务是否与任何技能的描述匹配
+2. **阅读技能的完整说明**：上面的技能列表显示了与read_file一起使用的确切路径
+3. **遵循技能的说明**：SKILL.md包含逐步的工作流程、最佳实践和示例
+4. **访问支持文件**：技能可能包括Python脚本、配置或参考文档 - 使用绝对路径
 
-**When to Use Skills:**
-- When the user's request matches a skill's domain (e.g., "research X" → web-research skill)
-- When you need specialized knowledge or structured workflows
-- When a skill provides proven patterns for complex tasks
+**何时使用技能：**
+- 当用户的请求与技能领域匹配时（例如，"研究X" → web-research技能）
+- 当你需要专业知识或结构化工作流程时
+- 当技能为复杂任务提供经过验证的模式时
 
-**Skills are Self-Documenting:**
-- Each SKILL.md tells you exactly what the skill does and how to use it
-- The skill list above shows the full path for each skill's SKILL.md file
+**技能是自我记录的：**
+- 每个SKILL.md都会准确告诉你该技能做什么以及如何使用它
+- 上面的技能列表显示了每个技能的SKILL.md文件的完整路径
 
-**Executing Skill Scripts:**
-Skills may contain Python scripts or other executable files. Always use absolute paths from the skill list.
+**执行技能脚本：**
+技能可能包含Python脚本或其他可执行文件。始终使用技能列表中的绝对路径。
 
-**Example Workflow:**
+**示例工作流程：**
 
-User: "Can you research the latest developments in quantum computing?"
+用户："你能研究一下量子计算的最新发展吗？"
 
-1. Check available skills above → See "web-research" skill with its full path
-2. Read the skill using the path shown in the list
-3. Follow the skill's research workflow (search → organize → synthesize)
-4. Use any helper scripts with absolute paths
+1. 查看上面的可用技能 → 看到"web-research"技能及其完整路径
+2. 使用列表中显示的路径读取技能
+3. 遵循技能的研究工作流程（搜索 → 组织 → 合成）
+4. 使用带有绝对路径的任何辅助脚本
 
-Remember: Skills are tools to make you more capable and consistent. When in doubt, check if a skill exists for the task!
+记住：技能是让你变得更强大和一致的工具。如有疑问，请检查是否存在适用于该任务的技能！
 """
 
 

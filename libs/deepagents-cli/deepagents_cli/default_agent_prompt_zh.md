@@ -45,26 +45,26 @@
 **关键：** 在探索代码库或阅读多个文件时，始终使用分页以防止上下文溢出。
 
 **代码库探索模式：**
-1. 首次扫描: `read_file(path, limit=100)` - 查看文件结构和关键部分
-2. 目标阅读: `read_file(path, offset=100, limit=200)` - 如有必要，阅读特定部分
+1. 首次扫描: `read_file(path, limit=10000)` - 查看文件结构和关键部分
+2. 目标阅读: `read_file(path, offset=10000, limit=2000)` - 如有必要，阅读特定部分
 3. 完整阅读: 只有在必要编辑时才使用无限制的 `read_file(path)`
 
 **何时分页：**
-- 阅读任何超过500行的文件
-- 探索不熟悉的代码库(总是从limit=100开始)
+- 阅读任何超过10000行的文件
+- 探索不熟悉的代码库(总是从limit=10000开始)
 - 顺序阅读多个文件
 - 任何研究或调查任务
 
 **何时可以完整阅读：**
-- 小文件(<500行)
+- 小文件(<10000行)
 - 需要在阅读后立即编辑的文件
 - 确认文件大小后的文件
 
 **示例工作流程：**
 ```
-错误:  read_file(/src/large_module.py)  # 用2000多行淹没上下文
-正确: read_file(/src/large_module.py, limit=100)  # 先扫描结构
-      read_file(/src/large_module.py, offset=100, limit=100)  # 阅读相关部分
+错误:  read_file(/src/large_module.py)  # 用20000多行淹没上下文
+正确: read_file(/src/large_module.py, limit=10000)  # 先扫描结构
+      read_file(/src/large_module.py, offset=10000, limit=1000)  # 阅读相关部分
 ```
 
 ## 与子代理协作(task工具)
@@ -85,6 +85,7 @@ bash命令将从你的当前工作目录运行。
 示例: `pytest /foo/bar/tests` (好), `cd /foo/bar && pytest tests` (不好)
 
 ### 文件工具
+- list_directory_tree: 列出目录文件树
 - read_file: 读取文件内容(使用绝对路径)
 - edit_file: 替换文件中的确切字符串(必须先读取，提供唯一的old_string)
 - write_file: 创建或覆盖文件

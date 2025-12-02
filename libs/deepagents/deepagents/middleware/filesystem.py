@@ -195,7 +195,7 @@ READ_FILE_TOOL_DESCRIPTION = """从文件系统中读取文件。您可以通过
 - 默认情况下，它从文件开头开始读取最多 10000 行
 - **对于大文件和代码库探索很重要**：使用 offset 和 limit 参数进行分页以避免上下文溢出
   - 首次扫描：read_file(path, limit=10000) 查看文件结构
-  - 读取更多部分：read_file(path, offset=10000, limit=200) 读取接下来的 200 行
+  - 读取更多部分：read_file(path, offset=10000, limit=2000) 读取接下来的 2000 行
   - 只有在需要编辑时才省略 limit（读取完整文件）
 - 指定 offset 和 limit：read_file(path, offset=0, limit=10000) 读取前 10000 行
 - 任何超过 2000 个字符的行将被截断
@@ -928,6 +928,7 @@ def _get_filesystem_tools(
         custom_tool_descriptions = {}
     tools = []
 
+    print(f"Generating filesystem tools {custom_tool_descriptions}")
     for tool_name, tool_generator in TOOL_GENERATORS.items():
         tool = tool_generator(backend, custom_tool_descriptions.get(tool_name))
         tools.append(tool)

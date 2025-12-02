@@ -159,32 +159,6 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       
       print(f"Response log saved to: {log_file}\n")
 
-class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
-    
-    def wrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> ModelResponse:
-        """拦截模型调用以记录提示信息"""
-        if self.enabled:
-            print("PromptLoggerMiddleware: Wrap model call...")
-            self._log_request(request)
-        # 调用原始处理函数并返回结果
-        return handler(request)
-    
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> ModelResponse:
-        """异步拦截模型调用以记录提示信息"""
-        if self.enabled:
-            print("PromptLoggerMiddleware: Async wrap model call...")
-            self._log_request(request)
-        # 异步调用原始处理函数并返回结果
-        return await handler(request)
-
 class PromptLoggerNodeMiddleware(PromptLoggerBaseMiddleware):
     def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
           """在模型调用后记录响应信息"""
