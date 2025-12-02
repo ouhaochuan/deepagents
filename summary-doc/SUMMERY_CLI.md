@@ -95,3 +95,19 @@ graph TD
    - 代理根据需要读取具体技能的详细说明
 
 这种架构设计使得 deepagents-cli 成为一个功能完整的 AI 编程助手，具备本地和远程执行能力、技能扩展系统以及人机协作的安全机制。
+
+## 中间件
+  - 最终的中间件顺序
+    - `PromptLoggerNodeMiddleware`
+    - `TodoListMiddleware`
+    - `FilesystemMiddleware`
+    - `SubAgentMiddleware`
+    - `SummarizationMiddleware`
+    - `AnthropicPromptCachingMiddleware`
+    - `PatchToolCallsMiddleware`
+    - `DirectoryTreeMiddleware`
+    - `AgentMemoryMiddleware`
+    - `SkillsMiddleware`
+    - `ShellMiddleware`
+    - `PromptLoggerWrapperMiddleware`
+    - `HumanInTheLoopMiddleware`

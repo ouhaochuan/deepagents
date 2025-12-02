@@ -133,13 +133,12 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str
 
 ### 文件系统和路径
 
-**重要 - 路径处理:**
-- 对于文件系统工具（ls、read_file等），请使用以 / 开头的虚拟路径
-- 根路径 (/) 映射到当前工作目录 (`{cwd}`)
-- 示例: 要访问工作目录中的文件，使用 `/file.txt`
-- 永远不要使用相对路径
-- 使用 list_directory_tree 工具来探索工作目录的目录文件结构
-- 在 Windows 系统上，本地文件通过虚拟路径访问，例如：`/test.txt` 对应 `{cwd}\\test.txt`
+**重要 - 路径处理：**
+
+- 所有文件路径必须是绝对路径（例如：`{cwd}/file.txt`）
+- 使用 <env> 中的工作目录来构建绝对路径
+- 示例：要在工作目录中创建一个文件，请使用 `{cwd}/research_project/file.md`
+- 永远不要使用相对路径 - 始终构建完整的绝对路径
 
 """
 
@@ -359,13 +358,16 @@ def create_agent_with_config(
 
     # Project-level skills directory (if in a project)
     project_skills_dir = settings.get_project_skills_dir()
+    
+    # 输出settings
+    print(f"agent.py settings.project_root: {settings.project_root}")
 
     # CONDITIONAL SETUP: Local vs Remote Sandbox
     if sandbox is None:
         # ========== LOCAL MODE ==========
         # Backend: Local filesystem for code (no virtual routes)
         composite_backend = CompositeBackend(
-            default=FilesystemBackend(root_dir=".", virtual_mode=True),  # Current working directory
+            default=FilesystemBackend(),  # Current working directory
             routes={},  # No virtualization - use real paths
         )
 

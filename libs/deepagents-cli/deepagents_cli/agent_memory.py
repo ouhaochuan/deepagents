@@ -310,16 +310,23 @@ class AgentMemoryMiddleware(AgentMiddleware):
         """
         self.settings = settings
         self.assistant_id = assistant_id
+        print(f"AgentMemoryMiddleware assistant_id: {assistant_id}")
 
         # User paths
         self.agent_dir = settings.get_agent_dir(assistant_id)
+        print(f"AgentMemoryMiddleware agent_dir: {self.agent_dir}")
+
         # Store both display path (with ~) and absolute path for file operations
         self.agent_dir_display = f"~/.deepagents/{assistant_id}"
         self.agent_dir_absolute = str(self.agent_dir)
-
+        print(f"AgentMemoryMiddleware agent_dir_display: {self.agent_dir_display}")
+        print(f"AgentMemoryMiddleware agent_dir_absolute: {self.agent_dir_absolute}")
+        
         # Project paths (from settings)
         self.project_root = settings.project_root
+        print(f"AgentMemoryMiddleware project_root: {self.project_root}")
 
+        print(f"AgentMemoryMiddleware system_prompt_template: {len(system_prompt_template) if system_prompt_template else 'None'}")
         self.system_prompt_template = system_prompt_template or DEFAULT_MEMORY_SNIPPET
 
     def before_agent(
@@ -346,6 +353,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         # Load user memory if not already in state
         if "user_memory" not in state:
             user_path = self.settings.get_user_agent_md_path(self.assistant_id)
+            print(f"Loading user memory from {user_path}")
             if user_path.exists():
                 with contextlib.suppress(OSError, UnicodeDecodeError):
                     result["user_memory"] = user_path.read_text()
@@ -353,6 +361,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         # Load project memory if not already in state
         if "project_memory" not in state:
             project_path = self.settings.get_project_agent_md_path()
+            print(f"Loading project memory from {project_path}")
             if project_path and project_path.exists():
                 with contextlib.suppress(OSError, UnicodeDecodeError):
                     result["project_memory"] = project_path.read_text()
@@ -381,12 +390,15 @@ class AgentMemoryMiddleware(AgentMiddleware):
             project_memory_info = f"`{self.project_root}` (no agent.md found)"
         else:
             project_memory_info = "None (not in a git project)"
+        print(f"AgentMemoryMiddleware Project memory info: {project_memory_info}")
+        
 
         # Build project deepagents directory path
         if self.project_root:
             project_deepagents_dir = str(self.project_root / ".deepagents")
         else:
             project_deepagents_dir = "[project-root]/.deepagents (not in a project)"
+        print(f"AgentMemoryMiddleware Project deepagents dir: {project_deepagents_dir}")
 
         # Format memory section with both memories
         memory_section = self.system_prompt_template.format(
@@ -394,16 +406,21 @@ class AgentMemoryMiddleware(AgentMiddleware):
             project_memory=project_memory if project_memory else "(No project agent.md)",
         )
 
-        system_prompt = memory_section
+        system_prompt = "(这一行是调试信息，忽略)来自：AgentMemoryMiddleware system_prompt_template 或 DEFAULT_MEMORY_SNIPPET\n\n" + memory_section
 
         if base_system_prompt:
-            system_prompt += "\n\n" + base_system_prompt
+            system_prompt += "\n\n(这一行是调试信息，忽略)来自：AgentMemoryMiddleware request.system_prompt\n\n" + base_system_prompt
 
-        system_prompt += "\n\n" + LONGTERM_MEMORY_SYSTEM_PROMPT.format(
+        # # 处理\.写入文件后变成.
+        # project_deepagents_dir_resovled = project_deepagents_dir.replace("\\.", "\\\\.")
+        # print(f"AgentMemoryMiddleware project_deepagents_dir_resovled: {project_deepagents_dir_resovled}")
+
+        system_prompt += "\n\n(这一行是调试信息，忽略)来自：AgentMemoryMiddleware LONGTERM_MEMORY_SYSTEM_PROMPT\n\n" + LONGTERM_MEMORY_SYSTEM_PROMPT.format(
             agent_dir_absolute=self.agent_dir_absolute,
             agent_dir_display=self.agent_dir_display,
             project_memory_info=project_memory_info,
-            project_deepagents_dir=project_deepagents_dir,
+            # project_deepagents_dir=project_deepagents_dir_resovled,
+            project_deepagents_dir=project_deepagents_dir
         )
 
         return system_prompt

@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import wcmatch.glob as wcglob
+import glob
 
 from deepagents.backends.protocol import (
     BackendProtocol,
@@ -56,6 +57,9 @@ class FilesystemBackend(BackendProtocol):
         self.cwd = Path(root_dir).resolve() if root_dir else Path.cwd()
         self.virtual_mode = virtual_mode
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
+        print(f"FilesystemBackend: root_dir={self.cwd}")
+        print(f"FilesystemBackend: virtual_mode={self.virtual_mode}")
+        print(f"FilesystemBackend: max_file_size_mb={self.max_file_size_bytes}")
 
     def _resolve_path(self, key: str) -> Path:
         """Resolve a file path with security checks.
@@ -83,6 +87,7 @@ class FilesystemBackend(BackendProtocol):
             return full
 
         path = Path(key)
+        print(f"FilesystemBackend._resolve_path: path={path}")
         if path.is_absolute():
             return path
         return (self.cwd / path).resolve()
@@ -97,7 +102,9 @@ class FilesystemBackend(BackendProtocol):
             List of FileInfo-like dicts for files and directories directly in the directory.
             Directories have a trailing / in their path and is_dir=True.
         """
+        print(f"FilesystemBackend.ls_info: path={path}")
         dir_path = self._resolve_path(path)
+        print(f"FilesystemBackend.ls_info: path={dir_path}")
         if not dir_path.exists() or not dir_path.is_dir():
             return []
 
@@ -422,13 +429,66 @@ class FilesystemBackend(BackendProtocol):
         if pattern.startswith("/"):
             pattern = pattern.lstrip("/")
 
+        # Absolute pattern handling (Windows drive letters or root-anchored)
+        if re.match(r"^[a-zA-Z]:", pattern):
+            results: list[FileInfo] = []
+            try:
+                matches = glob.glob(pattern, recursive=True)
+            except Exception:
+                matches = []
+            for abs_path in matches:
+                p = Path(abs_path)
+                try:
+                    is_file = p.is_file()
+                except OSError:
+                    continue
+                if not is_file:
+                    continue
+                if not self.virtual_mode:
+                    try:
+                        st = p.stat()
+                        results.append(
+                            {
+                                "path": abs_path,
+                                "is_dir": False,
+                                "size": int(st.st_size),
+                                "modified_at": datetime.fromtimestamp(st.st_mtime).isoformat(),
+                            }
+                        )
+                    except OSError:
+                        results.append({"path": abs_path, "is_dir": False})
+                else:
+                    cwd_str = str(self.cwd)
+                    if not cwd_str.endswith("/"):
+                        cwd_str += "/"
+                    if abs_path.startswith(cwd_str):
+                        relative_path = abs_path[len(cwd_str) :]
+                    elif abs_path.startswith(str(self.cwd)):
+                        relative_path = abs_path[len(str(self.cwd)) :].lstrip("/")
+                    else:
+                        relative_path = abs_path
+                    virt = "/" + relative_path
+                    try:
+                        st = p.stat()
+                        results.append(
+                            {
+                                "path": virt,
+                                "is_dir": False,
+                                "size": int(st.st_size),
+                                "modified_at": datetime.fromtimestamp(st.st_mtime).isoformat(),
+                            }
+                        )
+                    except OSError:
+                        results.append({"path": virt, "is_dir": False})
+            results.sort(key=lambda x: x.get("path", ""))
+            return results
+
         search_path = self.cwd if path == "/" else self._resolve_path(path)
         if not search_path.exists() or not search_path.is_dir():
             return []
 
         results: list[FileInfo] = []
         try:
-            # Use recursive globbing to match files in subdirectories as tests expect
             for matched_path in search_path.rglob(pattern):
                 try:
                     is_file = matched_path.is_file()

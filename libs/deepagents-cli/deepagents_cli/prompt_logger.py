@@ -20,7 +20,7 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
     ) -> ModelResponse:
         """拦截模型调用以记录提示信息"""
         if self.enabled:
-            print("PromptLoggerMiddleware: Wrap model call...")
+            print("PromptLoggerWrapperMiddleware: Wrap model call...")
             self._log_request(request)
         # 调用原始处理函数并返回结果
         return handler(request)
@@ -32,7 +32,7 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
     ) -> ModelResponse:
         """异步拦截模型调用以记录提示信息"""
         if self.enabled:
-            print("PromptLoggerMiddleware: Async wrap model call...")
+            print("PromptLoggerWrapperMiddleware: Async wrap model call...")
             self._log_request(request)
         # 异步调用原始处理函数并返回结果
         return await handler(request)

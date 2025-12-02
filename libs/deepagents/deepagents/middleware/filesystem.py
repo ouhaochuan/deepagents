@@ -130,16 +130,17 @@ def _validate_path(path: str, *, allowed_prefixes: Sequence[str] | None = None) 
         msg = f"Path traversal not allowed: {path}"
         raise ValueError(msg)
 
-    # Reject Windows absolute paths (e.g., C:\..., D:/...)
-    # This maintains consistency in virtual filesystem paths
+    # Allow Windows absolute paths (e.g., C:\..., D:/...)
+    # Normalize separators but preserve drive-letter semantics
     if re.match(r"^[a-zA-Z]:", path):
-        msg = f"Windows absolute paths are not supported: {path}. Please use virtual paths starting with / (e.g., /workspace/file.txt)"
-        raise ValueError(msg)
+        normalized = os.path.normpath(path)
+        normalized = normalized.replace("\\", "/")
+        return normalized
 
     normalized = os.path.normpath(path)
     normalized = normalized.replace("\\", "/")
 
-    if not normalized.startswith("/"):
+    if not re.match(r"^[a-zA-Z]:", normalized) and not normalized.startswith("/"):
         normalized = f"/{normalized}"
 
     if allowed_prefixes is not None and not any(normalized.startswith(prefix) for prefix in allowed_prefixes):
@@ -405,11 +406,11 @@ EXECUTE_TOOL_DESCRIPTION = """在沙箱环境中执行给定命令，并进行�
 FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `list_directory_tree`、`ls`、`read_file`、`write_file`、`edit_file`、`glob`、`grep`
 
 您可以使用这些工具与文件系统进行交互。
-所有文件路径必须以/开头。
+所有文件路径必须以/开头（windows系统则以盘符开头）。
 
 文件操作的重要指南：
-- 始终使用以/开头的虚拟路径（例如，/file.txt）
-- 根路径(/)映射到当前工作目录
+- 始终使用以/开头的虚拟路径（例如，/file.txt）（windows系统则以盘符开头的虚拟路径（例如，C:/file.txt））
+- 根路径(.)映射到当前工作目录
 - 当需要查找文件时，使用list_directory_tree工具探索文件系统结构
 - 不要尝试查找父目录；仅在当前工作目录内搜索或使用绝对路径以避免意外结果
 

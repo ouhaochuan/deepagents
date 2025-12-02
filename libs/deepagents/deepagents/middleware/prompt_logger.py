@@ -163,6 +163,6 @@ class PromptLoggerNodeMiddleware(PromptLoggerBaseMiddleware):
     def after_model(self, state: Dict[str, Any], runtime: Any) -> Dict[str, Any] | None:
           """在模型调用后记录响应信息"""
           if self.enabled:
-              print("PromptLoggerMiddleware: After model call...")
+              print("PromptLoggerNodeMiddleware: After model call...")
               self._log_response(state)
           return None
