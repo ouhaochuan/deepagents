@@ -54,7 +54,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       if system_message and system_message.content:
           md_content.append(f"## System Prompt")
           md_content.append(f"")
-          md_content.append(f"```\n{system_message.content}\n```")
+          md_content.append(system_message.content)
           md_content.append(f"")
       
       # 添加消息历史
@@ -69,7 +69,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
           if content:
               md_content.append(f"**Content**:")
               md_content.append(f"")
-              md_content.append(f"```\n{content}\n```")
+              md_content.append(content)
               md_content.append(f"")
           
           # 工具调用
@@ -131,7 +131,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
           if content:
               md_content.append(f"**Content**:")
               md_content.append(f"")
-              md_content.append(f"```\n{content}\n```")
+              md_content.append(content)
               md_content.append(f"")
           
           # 工具调用

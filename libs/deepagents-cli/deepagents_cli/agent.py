@@ -93,12 +93,12 @@ def reset_agent(agent_name: str, source_agent: str | None = None) -> None:
 
 
 def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str:
-    """获取代理的基本系统提示。
+    """获取agent的基本系统提示。
 
     参数:
-        assistant_id: 代理标识符，用于路径引用
+        assistant_id: agent标识符，用于路径引用
         sandbox_type: 沙箱提供者类型 ("modal", "runloop", "daytona")。
-                     如果为None，则代理在本地模式下运行。
+                     如果为None，则agent在本地模式下运行。
 
     返回:
         系统提示字符串（不包含agent.md内容）

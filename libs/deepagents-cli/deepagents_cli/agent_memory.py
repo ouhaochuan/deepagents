@@ -202,10 +202,10 @@ LONGTERM_MEMORY_SYSTEM_PROMPT = """
 
 ## 决定将记忆存储在哪里
 
-在编写或更新代理记忆时，决定每个事实、配置或行为属于何处：
+在编写或更新agent记忆时，决定每个事实、配置或行为属于何处：
 
-### 用户代理文件: `{agent_dir_absolute}/agent.md`
-→ 描述代理在所有项目中的**个性、风格和普遍行为**。
+### 用户agent文件: `{agent_dir_absolute}/agent.md`
+→ 描述agent在所有项目中的**个性、风格和普遍行为**。
 
 **存储在这里：**
 - 你的通用语调和沟通风格
@@ -219,8 +219,8 @@ LONGTERM_MEMORY_SYSTEM_PROMPT = """
 - "始终在Python中使用类型提示"
 - "更喜欢函数式编程模式"
 
-### 项目代理文件: `{project_deepagents_dir}/agent.md`
-→ 描述**这个特定项目如何工作**以及**代理在此项目中应如何表现**。
+### 项目agent文件: `{project_deepagents_dir}/agent.md`
+→ 描述**这个特定项目如何工作**以及**agent在此项目中应如何表现**。
 
 **存储在这里：**
 - 项目特定的架构和设计模式

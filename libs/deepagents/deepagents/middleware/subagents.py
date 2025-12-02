@@ -201,33 +201,33 @@ assistant: "I'm going to use the Task tool to launch with the greeting-responder
 # - Remember to use the `task` tool to silo independent tasks within a multi-part objective.
 # - You should use the `task` tool whenever you have a complex task that will take multiple steps, and is independent from other tasks that the agent needs to complete. These agents are highly competent and efficient."""  # noqa: E501
 
-TASK_SYSTEM_PROMPT = """## `task` (子代理生成器)
+TASK_SYSTEM_PROMPT = """## `task` (subagent生成器)
 
-您可以使用 `task` 工具启动短期存在的子代理来处理独立任务。这些代理是短暂的——它们只在任务期间存在并返回单个结果。
+您可以使用 `task` 工具启动短期存在的subagent来处理独立任务。这些agent是短暂的——它们只在任务期间存在并返回单个结果。
 
 何时使用 task 工具：
 - 当任务复杂且多步骤，并且可以完全独立委派时
 - 当任务独立于其他任务并且可以并行运行时
 - 当任务需要专注推理或大量令牌/上下文使用量会膨胀协调器线程时
 - 当沙箱提高可靠性时（例如代码执行、结构化搜索、数据格式化）
-- 当您只关心子代理的输出而不是中间步骤时（例如进行大量研究然后返回综合报告，执行一系列计算或查找以获得简洁、相关的答案）
+- 当您只关心subagent的输出而不是中间步骤时（例如进行大量研究然后返回综合报告，执行一系列计算或查找以获得简洁、相关的答案）
 
-子代理生命周期：
+subagent生命周期：
 1. **生成** → 提供清晰的角色、指令和预期输出
-2. **运行** → 子代理自主完成任务
-3. **返回** → 子代理提供单个结构化结果
+2. **运行** → subagent自主完成任务
+3. **返回** → subagent提供单个结构化结果
 4. **协调** → 将结果合并或综合到主线程中
 
 何时不使用 task 工具：
-- 如果您需要在子代理完成后查看中间推理或步骤（task 工具隐藏了它们）
+- 如果您需要在subagent完成后查看中间推理或步骤（task 工具隐藏了它们）
 - 如果任务微不足道（几次工具调用或简单查找）
 - 如果委派不会减少令牌使用量、复杂性或上下文切换
 - 如果分割会增加延迟而没有好处
 
 ## 重要 Task 工具使用注意事项
-- 只要可能，请并行化您的工作。这对 tool_calls 和 tasks 都适用。当您有独立步骤需要完成时——并行进行 tool_calls 或启动 tasks（子代理）以更快地完成它们。这为用户节省了时间，这是非常重要的。
+- 只要可能，请并行化您的工作。这对 tool_calls 和 tasks 都适用。当您有独立步骤需要完成时——并行进行 tool_calls 或启动 tasks（subagent）以更快地完成它们。这为用户节省了时间，这是非常重要的。
 - 记住使用 `task` 工具来隔离多部分目标内的独立任务。
-- 当您有一个复杂的任务需要多个步骤，并且与代理需要完成的其他任务无关时，应该使用 `task` 工具。这些代理非常能干且高效。"""  # noqa: E501
+- 当您有一个复杂的任务需要多个步骤，并且与agent需要完成的其他任务无关时，应该使用 `task` 工具。这些agent非常能干且高效。"""  # noqa: E501
 
 DEFAULT_GENERAL_PURPOSE_DESCRIPTION = "General-purpose agent for researching complex questions, searching for files and content, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you. This agent has access to all tools as the main agent."  # noqa: E501
 

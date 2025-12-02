@@ -12,12 +12,12 @@
 - 启动主交互循环
 - 协调各个组件的集成
 
-### 2. 代理管理 - [agent.py](/libs\deepagents-cli\deepagents_cli\agent.py)
-负责创建和管理 AI 代理：
-- 创建具有特定配置的代理实例
-- 管理代理的系统提示（system prompt）
+### 2. agent管理 - [agent.py](/libs\deepagents-cli\deepagents_cli\agent.py)
+负责创建和管理 AI agent：
+- 创建具有特定配置的agent实例
+- 管理agent的系统提示（system prompt）
 - 设置工具中断机制（human-in-the-loop）
-- 管理代理的记忆和技能中间件
+- 管理agent的记忆和技能中间件
 - 处理本地模式与远程沙盒模式的不同配置
 
 ### 3. 任务执行 - [execution.py](/libs\deepagents-cli\deepagents_cli\execution.py)
@@ -31,7 +31,7 @@
 ### 4. 技能系统 - `skills/` 目录
 实现 Agent 技能系统，采用 Anthropic 的渐进式披露模式：
 - [load.py](/libs\deepagents-cli\deepagents_cli\skills\load.py): 解析和加载技能元数据
-- [middleware.py](/libs\deepagents-cli\deepagents_cli\skills\middleware.py): 将技能信息注入系统提示，使代理能够发现和使用技能
+- [middleware.py](/libs\deepagents-cli\deepagents_cli\skills\middleware.py): 将技能信息注入系统提示，使agent能够发现和使用技能
 - [commands.py](/libs\deepagents-cli\deepagents_cli\commands.py): 处理技能相关的命令行指令
 
 ### 5. 配置管理 - [config.py](/libs\deepagents-cli\deepagents_cli\config.py)
@@ -77,22 +77,22 @@ graph TD
 1. **启动阶段**：
    - [main.py](/libs\deepagents-cli\deepagents_cli\main.py) 解析命令行参数并初始化环境
    - 加载配置文件和环境变量
-   - 创建代理实例（通过 [agent.py](/libs\deepagents-cli\deepagents_cli\agent.py)）
+   - 创建agent实例（通过 [agent.py](/libs\deepagents-cli\deepagents_cli\agent.py)）
 
-2. **代理配置阶段**：
+2. **agent配置阶段**：
    - [agent.py](/libs\deepagents-cli\deepagents_cli\agent.py) 根据是否使用沙盒环境配置不同的后端
-   - 加载技能系统并注入到代理提示中
+   - 加载技能系统并注入到agent提示中
    - 设置中间件链（记忆、技能、Shell等）
 
 3. **交互循环**：
    - [main.py](/libs\deepagents-cli\deepagents_cli\main.py) 进入交互循环等待用户输入
    - 用户输入传递给 [execution.py](/libs\deepagents-cli\deepagents_cli\execution.py) 执行
-   - [execution.py](/libs\deepagents-cli\deepagents_cli\execution.py) 处理与代理的交互，包括工具调用审批
+   - [execution.py](/libs\deepagents-cli\deepagents_cli\execution.py) 处理与agent的交互，包括工具调用审批
 
 4. **技能系统**：
    - `skills/load.py` 在会话开始时扫描可用技能
    - `skills/middleware.py` 将技能信息注入系统提示
-   - 代理根据需要读取具体技能的详细说明
+   - agent根据需要读取具体技能的详细说明
 
 这种架构设计使得 deepagents-cli 成为一个功能完整的 AI 编程助手，具备本地和远程执行能力、技能扩展系统以及人机协作的安全机制。
 
