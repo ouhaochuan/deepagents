@@ -177,7 +177,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
           f.write('\n'.join(md_content))
       
       self.call_count += 1
-      print(f"call_count+1 = {self.call_count}")
+      # print(f"call_count+1 = {self.call_count}")
       print(f"Response log saved to: {log_file}\n")
 
 class PromptLoggerNodeMiddleware(PromptLoggerBaseMiddleware):
