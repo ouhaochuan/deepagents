@@ -41,7 +41,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
           return
           
       self.call_count = request.state.get('call_count', 1)
-      print(f"read call_count: {self.call_count}")
+      # print(f"read call_count: {self.call_count}")
       
       # 获取state的实际类型名称
       state_type_name = type(request.state).__name__
@@ -103,7 +103,10 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       
       # 保存到文件，文件名加上时间戳，将call放到最后
       timestamp_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-      log_file = os.path.join(self.log_dir, f"{timestamp_filename}_{self.call_count:03d}_call.md")
+      date_dir = datetime.now().strftime("%Y-%m-%d")
+      dated_log_dir = os.path.join(self.log_dir, date_dir)
+      os.makedirs(dated_log_dir, exist_ok=True)
+      log_file = os.path.join(dated_log_dir, f"{timestamp_filename}_{self.call_count:03d}_call.md")
       with open(log_file, 'w', encoding='utf-8') as f:
           f.write('\n'.join(md_content))
       
@@ -116,7 +119,7 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
           return
           
       self.call_count = state.get('call_count', 1)
-      print(f"read call_count: {self.call_count}")
+      # print(f"read call_count: {self.call_count}")
           
       # 获取最新的消息作为响应
       messages = state.get('messages', [])
@@ -166,7 +169,10 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       
       # 保存到文件，文件名加上时间戳，将response放到最后
       timestamp_filename = datetime.now().strftime("%Y%m%d_%H%M%S")
-      log_file = os.path.join(self.log_dir, f"{timestamp_filename}_{self.call_count:03d}_response.md")
+      date_dir = datetime.now().strftime("%Y-%m-%d")
+      dated_log_dir = os.path.join(self.log_dir, date_dir)
+      os.makedirs(dated_log_dir, exist_ok=True)
+      log_file = os.path.join(dated_log_dir, f"{timestamp_filename}_{self.call_count:03d}_response.md")
       with open(log_file, 'w', encoding='utf-8') as f:
           f.write('\n'.join(md_content))
       
@@ -180,9 +186,9 @@ class PromptLoggerNodeMiddleware(PromptLoggerBaseMiddleware):
           # print(f"PromptLoggerNodeMiddleware: state: {state}")
           # print(f"PromptLoggerNodeMiddleware: runtime: {runtime}")
           if self.enabled:
-              print("PromptLoggerNodeMiddleware: After model call...")
+              # print("PromptLoggerNodeMiddleware: After model call...")
               self._log_response(state)
-          print(f"PromptLoggerNodeMiddleware: update call_count: {self.call_count}")
+          # print(f"PromptLoggerNodeMiddleware: update call_count: {self.call_count}")
           return {
             "call_count": self.call_count
           }
@@ -197,7 +203,7 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
         """拦截模型调用以记录提示信息"""
         # print(f"PromptLoggerWrapperMiddleware: request: {request}")
         if self.enabled:
-            print("PromptLoggerWrapperMiddleware: Wrap model call...")
+            # print("PromptLoggerWrapperMiddleware: Wrap model call...")
             self._log_request(request)
         # 调用原始处理函数并返回结果
         return handler(request)
@@ -210,7 +216,7 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
         """异步拦截模型调用以记录提示信息"""
         # print(f"PromptLoggerWrapperMiddleware: request: {request}")
         if self.enabled:
-            print("PromptLoggerWrapperMiddleware: Async wrap model call...")
+            # print("PromptLoggerWrapperMiddleware: Async wrap model call...")
             self._log_request(request)
         # 异步调用原始处理函数并返回结果
         return await handler(request)

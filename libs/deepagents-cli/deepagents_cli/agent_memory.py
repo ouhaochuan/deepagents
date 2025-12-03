@@ -375,7 +375,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         # Load user memory if not already in state
         if "user_memory" not in state:
             user_path = self.settings.get_user_agent_md_path(self.assistant_id)
-            print(f"Loading user memory from {user_path}")
+            # print(f"Loading user memory from {user_path}")
             if user_path.exists():
                 with contextlib.suppress(OSError, UnicodeDecodeError):
                     result["user_memory"] = user_path.read_text(encoding="utf-8")
@@ -383,7 +383,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         # Load project memory if not already in state
         if "project_memory" not in state:
             project_path = self.settings.get_project_agent_md_path()
-            print(f"Loading project memory from {project_path}")
+            # print(f"Loading project memory from {project_path}")
             if project_path and project_path.exists():
                 with contextlib.suppress(OSError, UnicodeDecodeError):
                     result["project_memory"] = project_path.read_text(encoding="utf-8")
@@ -412,7 +412,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
             project_memory_info = f"`{self.project_root}` (no agent.md found)"
         else:
             project_memory_info = "None (not in a git project)"
-        print(f"AgentMemoryMiddleware Project memory info: {project_memory_info}")
+        # print(f"AgentMemoryMiddleware Project memory info: {project_memory_info}")
         
 
         # Build project deepagents directory path
@@ -420,7 +420,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
             project_deepagents_dir = str(self.project_root / ".deepagents")
         else:
             project_deepagents_dir = "[project-root]/.deepagents (not in a project)"
-        print(f"AgentMemoryMiddleware Project deepagents dir: {project_deepagents_dir}")
+        # print(f"AgentMemoryMiddleware Project deepagents dir: {project_deepagents_dir}")
 
         # Format memory section with both memories
         memory_section = self.system_prompt_template.format(
