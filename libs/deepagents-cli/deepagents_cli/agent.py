@@ -360,7 +360,7 @@ def create_agent_with_config(
     project_skills_dir = settings.get_project_skills_dir()
     
     # 输出settings
-    print(f"agent.py settings.project_root: {settings.project_root}")
+    # print(f"agent.py settings.project_root: {settings.project_root}")
 
     # CONDITIONAL SETUP: Local vs Remote Sandbox
     if sandbox is None:

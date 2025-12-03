@@ -57,9 +57,9 @@ class FilesystemBackend(BackendProtocol):
         self.cwd = Path(root_dir).resolve() if root_dir else Path.cwd()
         self.virtual_mode = virtual_mode
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
-        print(f"FilesystemBackend: root_dir={self.cwd}")
-        print(f"FilesystemBackend: virtual_mode={self.virtual_mode}")
-        print(f"FilesystemBackend: max_file_size_mb={max_file_size_mb}MB")
+        # print(f"FilesystemBackend: root_dir={self.cwd}")
+        # print(f"FilesystemBackend: virtual_mode={self.virtual_mode}")
+        # print(f"FilesystemBackend: max_file_size_mb={max_file_size_mb}MB")
 
     def _resolve_path(self, key: str) -> Path:
         """Resolve a file path with security checks.
@@ -87,7 +87,7 @@ class FilesystemBackend(BackendProtocol):
             return full
 
         path = Path(key)
-        print(f"FilesystemBackend._resolve_path: path={path}")
+        # print(f"FilesystemBackend._resolve_path: path={path}")
         if path.is_absolute():
             return path
         return (self.cwd / path).resolve()
@@ -102,9 +102,9 @@ class FilesystemBackend(BackendProtocol):
             List of FileInfo-like dicts for files and directories directly in the directory.
             Directories have a trailing / in their path and is_dir=True.
         """
-        print(f"FilesystemBackend.ls_info: path={path}")
+        # print(f"FilesystemBackend.ls_info: path={path}")
         dir_path = self._resolve_path(path)
-        print(f"FilesystemBackend.ls_info: path={dir_path}")
+        # print(f"FilesystemBackend.ls_info: path={dir_path}")
         if not dir_path.exists() or not dir_path.is_dir():
             return []
 

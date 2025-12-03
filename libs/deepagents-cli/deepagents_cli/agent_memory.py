@@ -332,23 +332,23 @@ class AgentMemoryMiddleware(AgentMiddleware):
         """
         self.settings = settings
         self.assistant_id = assistant_id
-        print(f"AgentMemoryMiddleware assistant_id: {assistant_id}")
+        # print(f"AgentMemoryMiddleware assistant_id: {assistant_id}")
 
         # User paths
         self.agent_dir = settings.get_agent_dir(assistant_id)
-        print(f"AgentMemoryMiddleware agent_dir: {self.agent_dir}")
+        # print(f"AgentMemoryMiddleware agent_dir: {self.agent_dir}")
 
         # Store both display path (with ~) and absolute path for file operations
         self.agent_dir_display = f"~/.deepagents/{assistant_id}"
         self.agent_dir_absolute = str(self.agent_dir)
-        print(f"AgentMemoryMiddleware agent_dir_display: {self.agent_dir_display}")
-        print(f"AgentMemoryMiddleware agent_dir_absolute: {self.agent_dir_absolute}")
+        # print(f"AgentMemoryMiddleware agent_dir_display: {self.agent_dir_display}")
+        # print(f"AgentMemoryMiddleware agent_dir_absolute: {self.agent_dir_absolute}")
         
         # Project paths (from settings)
         self.project_root = settings.project_root
-        print(f"AgentMemoryMiddleware project_root: {self.project_root}")
+        # print(f"AgentMemoryMiddleware project_root: {self.project_root}")
 
-        print(f"AgentMemoryMiddleware system_prompt_template: {len(system_prompt_template) if system_prompt_template else 'None'}")
+        # print(f"AgentMemoryMiddleware system_prompt_template: {len(system_prompt_template) if system_prompt_template else 'None'}")
         self.system_prompt_template = system_prompt_template or DEFAULT_MEMORY_SNIPPET
 
     def before_agent(

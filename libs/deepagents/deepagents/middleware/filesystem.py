@@ -929,7 +929,7 @@ def _get_filesystem_tools(
         custom_tool_descriptions = {}
     tools = []
 
-    print(f"Generating filesystem tools {custom_tool_descriptions}")
+    # print(f"Generating filesystem tools {custom_tool_descriptions}")
     for tool_name, tool_generator in TOOL_GENERATORS.items():
         tool = tool_generator(backend, custom_tool_descriptions.get(tool_name))
         tools.append(tool)
