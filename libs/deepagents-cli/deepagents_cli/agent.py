@@ -11,6 +11,7 @@ from deepagents.backends.sandbox import SandboxBackendProtocol
 from langchain.agents.middleware import (
     InterruptOnConfig,
 )
+from deepagents.middleware.prompt_logger import PromptLoggerWrapperMiddleware
 from langchain.agents.middleware.types import AgentState
 from langchain.messages import ToolCall
 from langchain.tools import BaseTool
@@ -24,7 +25,6 @@ from deepagents_cli.config import COLORS, config, console, get_default_coding_in
 from deepagents_cli.integrations.sandbox_factory import get_default_working_dir
 from deepagents_cli.shell import ShellMiddleware
 from deepagents_cli.skills import SkillsMiddleware
-from deepagents_cli.prompt_logger import PromptLoggerWrapperMiddleware
 
 
 def list_agents() -> None:
