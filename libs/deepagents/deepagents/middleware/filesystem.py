@@ -995,6 +995,7 @@ class FilesystemMiddleware(AgentMiddleware):
         system_prompt: str | None = None,
         custom_tool_descriptions: dict[str, str] | None = None,
         tool_token_limit_before_evict: int | None = 20000,
+        ignore_tools: list[str] | None = None,
     ) -> None:
         """Initialize the filesystem middleware.
 
@@ -1004,6 +1005,7 @@ class FilesystemMiddleware(AgentMiddleware):
             system_prompt: Optional custom system prompt override.
             custom_tool_descriptions: Optional custom tool descriptions override.
             tool_token_limit_before_evict: Optional token limit before evicting a tool result to the filesystem.
+            ignore_tools: Optional list of tools to ignore intercept_large_tool_result logic.
         """
         self.tool_token_limit_before_evict = tool_token_limit_before_evict
 
@@ -1014,7 +1016,7 @@ class FilesystemMiddleware(AgentMiddleware):
         self._custom_system_prompt = system_prompt
 
         self.tools = _get_filesystem_tools(self.backend, custom_tool_descriptions)
-
+        self.ignore_tools = ignore_tools or []
     def _get_backend(self, runtime: ToolRuntime) -> BackendProtocol:
         """Get the resolved backend instance from backend or factory.
 
@@ -1211,6 +1213,10 @@ class FilesystemMiddleware(AgentMiddleware):
         Returns:
             The raw ToolMessage, or a pseudo tool message with the ToolResult in state.
         """
+        # Skip processing for ignored tools
+        if request.tool_call["name"] in self.ignore_tools:
+            return handler(request)
+            
         if self.tool_token_limit_before_evict is None or request.tool_call["name"] in TOOL_GENERATORS:
             return handler(request)
 
@@ -1231,6 +1237,10 @@ class FilesystemMiddleware(AgentMiddleware):
         Returns:
             The raw ToolMessage, or a pseudo tool message with the ToolResult in state.
         """
+        # Skip processing for ignored tools
+        if request.tool_call["name"] in self.ignore_tools:
+            return await handler(request)
+        
         # 打印工具调用详情
         tool_name = request.tool_call["name"]
         tool_args = request.tool_call["args"]
