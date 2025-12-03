@@ -39,6 +39,20 @@ def get_default_model() -> ChatAnthropic:
         max_tokens=20000,
     )
 
+# totolist工具的系统提示词翻译
+TODO_LIST_SYSTEM_PROMPT = """## `write_todos`
+您可以使用 `write_todos`工具来帮助您管理和规划复杂的目标。
+对于复杂的目标，请使用此工具以确保您正在跟踪每个必要的步骤，并让用户能够看到您的进度。
+这个工具对规划复杂目标非常有帮助，可以将这些较大的复杂目标分解成更小的步骤。
+
+一旦完成某个步骤，您必须立即将待办事项标记为已完成。不要累积多个步骤后再一起标记为完成。
+对于只需要几个步骤的简单目标，最好直接完成目标，而不要使用此工具。
+编写待办事项需要时间和token，只在管理复杂的多步骤问题时使用它！而不是用于简单的几步就能完成的请求。
+
+## 需要记住的重要待办事项列表使用说明
+- 切勿并行多次调用 `write_todos`工具。
+- 随着工作的进展，不要害怕修改待办事项列表。新的信息可能会揭示出需要完成的新任务，或者发现旧任务已经不相关。
+"""
 
 def create_deep_agent(
     model: str | BaseChatModel | None = None,
@@ -115,14 +129,14 @@ def create_deep_agent(
 
     deepagent_middleware = [
         PromptLoggerNodeMiddleware(),
-        TodoListMiddleware(),
+        TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),
         FilesystemMiddleware(backend=backend),
         SubAgentMiddleware(
             default_model=model,
             default_tools=tools,
             subagents=subagents if subagents is not None else [],
             default_middleware=[
-                TodoListMiddleware(),
+                TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),
                 FilesystemMiddleware(backend=backend),
                 SummarizationMiddleware(
                     model=model,

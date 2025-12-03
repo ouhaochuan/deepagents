@@ -59,7 +59,7 @@ class FilesystemBackend(BackendProtocol):
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
         print(f"FilesystemBackend: root_dir={self.cwd}")
         print(f"FilesystemBackend: virtual_mode={self.virtual_mode}")
-        print(f"FilesystemBackend: max_file_size_mb={self.max_file_size_bytes}")
+        print(f"FilesystemBackend: max_file_size_mb={max_file_size_mb}MB")
 
     def _resolve_path(self, key: str) -> Path:
         """Resolve a file path with security checks.
