@@ -63,83 +63,192 @@ DEFAULT_SUBAGENT_PROMPT = "In order to complete the objective that the user asks
 # State keys that should be excluded when passing state to subagents
 _EXCLUDED_STATE_KEYS = ("messages", "todos")
 
-TASK_TOOL_DESCRIPTION = """Launch an ephemeral subagent to handle complex, multi-step independent tasks with isolated context windows.
+# TASK_TOOL_DESCRIPTION = """Launch an ephemeral subagent to handle complex, multi-step independent tasks with isolated context windows.
 
-Available agent types and the tools they have access to:
+# Available agent types and the tools they have access to:
+# {available_agents}
+
+# When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.
+
+# ## Usage notes:
+# 1. Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses
+# 2. When the agent is done, it will return a single message back to you. The result returned by the agent is not visible to the user. To show the user the result, you should send a text message back to the user with a concise summary of the result.
+# 3. Each agent invocation is stateless. You will not be able to send additional messages to the agent, nor will the agent be able to communicate with you outside of its final report. Therefore, your prompt should contain a highly detailed task description for the agent to perform autonomously and you should specify exactly what information the agent should return back to you in its final and only message to you.
+# 4. The agent's outputs should generally be trusted
+# 5. Clearly tell the agent whether you expect it to create content, perform analysis, or just do research (search, file reads, web fetches, etc.), since it is not aware of the user's intent
+# 6. If the agent description mentions that it should be used proactively, then you should try your best to use it without the user having to ask for it first. Use your judgement.
+# 7. When only the general-purpose agent is provided, you should use it for all tasks. It is great for isolating context and token usage, and completing specific, complex tasks, as it has all the same capabilities as the main agent.
+
+# ### Example usage of the general-purpose agent:
+
+# <example_agent_descriptions>
+# "general-purpose": use this agent for general purpose tasks, it has access to all tools as the main agent.
+# </example_agent_descriptions>
+
+# <example>
+# User: "I want to conduct research on the accomplishments of Lebron James, Michael Jordan, and Kobe Bryant, and then compare them."
+# Assistant: *Uses the task tool in parallel to conduct isolated research on each of the three players*
+# Assistant: *Synthesizes the results of the three isolated research tasks and responds to the User*
+# <commentary>
+# Research is a complex, multi-step task in it of itself.
+# The research of each individual player is not dependent on the research of the other players.
+# The assistant uses the task tool to break down the complex objective into three isolated tasks.
+# Each research task only needs to worry about context and tokens about one player, then returns synthesized information about each player as the Tool Result.
+# This means each research task can dive deep and spend tokens and context deeply researching each player, but the final result is synthesized information, and saves us tokens in the long run when comparing the players to each other.
+# </commentary>
+# </example>
+
+# <example>
+# User: "Analyze a single large code repository for security vulnerabilities and generate a report."
+# Assistant: *Launches a single `task` subagent for the repository analysis*
+# Assistant: *Receives report and integrates results into final summary*
+# <commentary>
+# Subagent is used to isolate a large, context-heavy task, even though there is only one. This prevents the main thread from being overloaded with details.
+# If the user then asks followup questions, we have a concise report to reference instead of the entire history of analysis and tool calls, which is good and saves us time and money.
+# </commentary>
+# </example>
+
+# <example>
+# User: "Schedule two meetings for me and prepare agendas for each."
+# Assistant: *Calls the task tool in parallel to launch two `task` subagents (one per meeting) to prepare agendas*
+# Assistant: *Returns final schedules and agendas*
+# <commentary>
+# Tasks are simple individually, but subagents help silo agenda preparation.
+# Each subagent only needs to worry about the agenda for one meeting.
+# </commentary>
+# </example>
+
+# <example>
+# User: "I want to order a pizza from Dominos, order a burger from McDonald's, and order a salad from Subway."
+# Assistant: *Calls tools directly in parallel to order a pizza from Dominos, a burger from McDonald's, and a salad from Subway*
+# <commentary>
+# The assistant did not use the task tool because the objective is super simple and clear and only requires a few trivial tool calls.
+# It is better to just complete the task directly and NOT use the `task`tool.
+# </commentary>
+# </example>
+
+# ### Example usage with custom agents:
+
+# <example_agent_descriptions>
+# "content-reviewer": use this agent after you are done creating significant content or documents
+# "greeting-responder": use this agent when to respond to user greetings with a friendly joke
+# "research-analyst": use this agent to conduct thorough research on complex topics
+# </example_agent_description>
+
+# <example>
+# user: "Please write a function that checks if a number is prime"
+# assistant: Sure let me write a function that checks if a number is prime
+# assistant: First let me use the Write tool to write a function that checks if a number is prime
+# assistant: I'm going to use the Write tool to write the following code:
+# <code>
+# function isPrime(n) {{
+#   if (n <= 1) return false
+#   for (let i = 2; i * i <= n; i++) {{
+#     if (n % i === 0) return false
+#   }}
+#   return true
+# }}
+# </code>
+# <commentary>
+# Since significant content was created and the task was completed, now use the content-reviewer agent to review the work
+# </commentary>
+# assistant: Now let me use the content-reviewer agent to review the code
+# assistant: Uses the Task tool to launch with the content-reviewer agent
+# </example>
+
+# <example>
+# user: "Can you help me research the environmental impact of different renewable energy sources and create a comprehensive report?"
+# <commentary>
+# This is a complex research task that would benefit from using the research-analyst agent to conduct thorough analysis
+# </commentary>
+# assistant: I'll help you research the environmental impact of renewable energy sources. Let me use the research-analyst agent to conduct comprehensive research on this topic.
+# assistant: Uses the Task tool to launch with the research-analyst agent, providing detailed instructions about what research to conduct and what format the report should take
+# </example>
+
+# <example>
+# user: "Hello"
+# <commentary>
+# Since the user is greeting, use the greeting-responder agent to respond with a friendly joke
+# </commentary>
+# assistant: "I'm going to use the Task tool to launch with the greeting-responder agent"
+# </example>"""  # noqa: E501
+TASK_TOOL_DESCRIPTION = """启动一个临时subagent来处理复杂的、多步骤的独立任务，并具有隔离的上下文窗口。
+
+可用的subagent类型及其可访问的工具：
 {available_agents}
 
-When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.
+使用Task工具时，必须指定subagent_type参数来选择要使用的subagent类型。
 
-## Usage notes:
-1. Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses
-2. When the agent is done, it will return a single message back to you. The result returned by the agent is not visible to the user. To show the user the result, you should send a text message back to the user with a concise summary of the result.
-3. Each agent invocation is stateless. You will not be able to send additional messages to the agent, nor will the agent be able to communicate with you outside of its final report. Therefore, your prompt should contain a highly detailed task description for the agent to perform autonomously and you should specify exactly what information the agent should return back to you in its final and only message to you.
-4. The agent's outputs should generally be trusted
-5. Clearly tell the agent whether you expect it to create content, perform analysis, or just do research (search, file reads, web fetches, etc.), since it is not aware of the user's intent
-6. If the agent description mentions that it should be used proactively, then you should try your best to use it without the user having to ask for it first. Use your judgement.
-7. When only the general-purpose agent is provided, you should use it for all tasks. It is great for isolating context and token usage, and completing specific, complex tasks, as it has all the same capabilities as the main agent.
+## 使用说明：
+1. 尽可能并发启动多个agent以最大化性能；为此，请在单个消息中使用多个工具调用
+2. 当agent完成时，它会向您返回一条消息。agent返回的结果对用户不可见。要向用户显示结果，您应该发送一条文本消息给用户，其中包含结果的简明摘要。
+3. 每次agent调用都是无状态的。您将无法向agent发送额外的消息，agent也无法在其最终报告之外与您通信。因此，您的提示应包含详细的任务描述，以便agent能够自主执行，并且您应明确指定agent应在其最终且唯一的返回消息中向您提供哪些信息。
+4. 通常应信任agent的输出
+5. 清楚地告诉agent您期望它是创建内容、执行分析还是仅仅进行研究（搜索、文件读取、网络获取等），因为它不知道用户的意图
+6. 如果agent描述提到应主动使用它，那么您应尽最大努力在用户未首先要求的情况下使用它。请运用您的判断力。
+7. 当仅提供通用agent时，您应将其用于所有任务。它非常适合隔离上下文和token使用，并完成特定的复杂任务，因为它拥有与主agent相同的所有功能。
 
-### Example usage of the general-purpose agent:
+### 通用agent的使用示例：
 
 <example_agent_descriptions>
-"general-purpose": use this agent for general purpose tasks, it has access to all tools as the main agent.
+"general-purpose": 使用此agent处理一般性任务，它可以访问所有与主agent相同的工具。
 </example_agent_descriptions>
 
 <example>
-User: "I want to conduct research on the accomplishments of Lebron James, Michael Jordan, and Kobe Bryant, and then compare them."
-Assistant: *Uses the task tool in parallel to conduct isolated research on each of the three players*
-Assistant: *Synthesizes the results of the three isolated research tasks and responds to the User*
+用户："我想研究勒布朗·詹姆斯、迈克尔·乔丹和科比·布莱恩特的成就，然后进行比较。"
+助理：*并行使用task工具对三位球员分别进行独立研究*
+助理：*综合三个独立研究任务的结果并回应用户*
 <commentary>
-Research is a complex, multi-step task in it of itself.
-The research of each individual player is not dependent on the research of the other players.
-The assistant uses the task tool to break down the complex objective into three isolated tasks.
-Each research task only needs to worry about context and tokens about one player, then returns synthesized information about each player as the Tool Result.
-This means each research task can dive deep and spend tokens and context deeply researching each player, but the final result is synthesized information, and saves us tokens in the long run when comparing the players to each other.
+研究本身就是一个复杂的、多步骤的任务。
+每个球员的单独研究并不依赖于其他球员的研究。
+助手使用task工具将复杂的总体目标分解为三个独立的任务。
+每项研究任务只需要关注一个球员的上下文和tokens，然后将关于该球员的综合信息作为工具结果返回。
+这意味着每项研究任务都可以深入挖掘并花费tokens和上下文深度研究每位球员，但最终结果是综合信息，在长远来看比较球员时为我们节省了tokens。
 </commentary>
 </example>
 
 <example>
-User: "Analyze a single large code repository for security vulnerabilities and generate a report."
-Assistant: *Launches a single `task` subagent for the repository analysis*
-Assistant: *Receives report and integrates results into final summary*
+用户："分析单个大型代码库的安全漏洞并生成报告。"
+助理：*启动单个`task` subagent进行仓库分析*
+助理：*接收报告并将结果整合到最终摘要中*
 <commentary>
-Subagent is used to isolate a large, context-heavy task, even though there is only one. This prevents the main thread from being overloaded with details.
-If the user then asks followup questions, we have a concise report to reference instead of the entire history of analysis and tool calls, which is good and saves us time and money.
+Subagent用于隔离大型、上下文繁重的任务，即使只有一个任务。这可以防止主线程过载细节。
+如果用户随后提出后续问题，我们有一份简洁的报告可供参考，而不是整个分析和工具调用的历史记录，这样既省时又省钱。
 </commentary>
 </example>
 
 <example>
-User: "Schedule two meetings for me and prepare agendas for each."
-Assistant: *Calls the task tool in parallel to launch two `task` subagents (one per meeting) to prepare agendas*
-Assistant: *Returns final schedules and agendas*
+用户："为我安排两次会议并准备每次会议的议程。"
+助理：*并行调用task工具启动两个`task` subagent（每次会议一个）来准备议程*
+助理：*返回最终时间安排和议程*
 <commentary>
-Tasks are simple individually, but subagents help silo agenda preparation.
-Each subagent only needs to worry about the agenda for one meeting.
+每项任务单独来看都很简单，但subagent有助于隔离议程准备工作。
+每个subagent只需要关心一次会议的议程。
 </commentary>
 </example>
 
 <example>
-User: "I want to order a pizza from Dominos, order a burger from McDonald's, and order a salad from Subway."
-Assistant: *Calls tools directly in parallel to order a pizza from Dominos, a burger from McDonald's, and a salad from Subway*
+用户："我想从达美乐订购披萨，从麦当劳订购汉堡，从赛百味订购沙拉。"
+助理：*并行直接调用工具从达美乐订购披萨、从麦当劳订购汉堡、从赛百味订购沙拉*
 <commentary>
-The assistant did not use the task tool because the objective is super simple and clear and only requires a few trivial tool calls.
-It is better to just complete the task directly and NOT use the `task`tool.
+任务非常简单明了，只需要几次简单的工具调用。
+直接完成任务比使用`task`工具更好。
 </commentary>
 </example>
 
-### Example usage with custom agents:
+### 自定义agent的使用示例：
 
 <example_agent_descriptions>
-"content-reviewer": use this agent after you are done creating significant content or documents
-"greeting-responder": use this agent when to respond to user greetings with a friendly joke
-"research-analyst": use this agent to conduct thorough research on complex topics
-</example_agent_description>
+"content-reviewer": 在您完成创建重要内容或文档后使用此agent
+"greeting-responder": 使用此agent以友好的笑话回应用户问候
+"research-analyst": 使用此agent对复杂主题进行彻底研究
+</example_agent_descriptions>
 
 <example>
-user: "Please write a function that checks if a number is prime"
-assistant: Sure let me write a function that checks if a number is prime
-assistant: First let me use the Write tool to write a function that checks if a number is prime
-assistant: I'm going to use the Write tool to write the following code:
+用户："请写一个检查数字是否为质数的函数"
+助理：好的让我写一个检查数字是否为质数的函数
+助理：首先让我使用Write工具写一个检查数字是否为质数的函数
+助理：我将使用Write工具编写以下代码：
 <code>
 function isPrime(n) {{
   if (n <= 1) return false
@@ -150,28 +259,29 @@ function isPrime(n) {{
 }}
 </code>
 <commentary>
-Since significant content was created and the task was completed, now use the content-reviewer agent to review the work
+由于创建了重要内容并且任务已完成，现在使用content-reviewer agent审查工作
 </commentary>
-assistant: Now let me use the content-reviewer agent to review the code
-assistant: Uses the Task tool to launch with the content-reviewer agent
+助理：现在让我使用content-reviewer agent审查代码
+助理：使用Task工具启动content-reviewer agent
 </example>
 
 <example>
-user: "Can you help me research the environmental impact of different renewable energy sources and create a comprehensive report?"
+用户："你能帮我研究不同可再生能源的环境影响并制作一份全面的报告吗？"
 <commentary>
-This is a complex research task that would benefit from using the research-analyst agent to conduct thorough analysis
+这是一项复杂的研究任务，使用research-analyst agent进行深入分析将有所帮助
 </commentary>
-assistant: I'll help you research the environmental impact of renewable energy sources. Let me use the research-analyst agent to conduct comprehensive research on this topic.
-assistant: Uses the Task tool to launch with the research-analyst agent, providing detailed instructions about what research to conduct and what format the report should take
+助理：我将帮您研究可再生能源的环境影响。让我使用research-analyst agent对此主题进行全面研究。
+助理：使用Task工具启动research-analyst agent，提供有关要进行的研究和报告格式的详细说明
 </example>
-
-<example>
-user: "Hello"
-<commentary>
-Since the user is greeting, use the greeting-responder agent to respond with a friendly joke
-</commentary>
-assistant: "I'm going to use the Task tool to launch with the greeting-responder agent"
-</example>"""  # noqa: E501
+"""  # noqa: E501
+# 去掉这个例子，否则输入你好会触发greeting-responder agent，没有必要
+# <example>
+# 用户："你好"
+# <commentary>
+# 由于用户在打招呼，使用greeting-responder agent以友好的笑话回应
+# </commentary>
+# 助理："我将使用Task工具启动greeting-responder agent"
+# </example>
 
 # TASK_SYSTEM_PROMPT = """## `task` (subagent spawner)
 
@@ -229,7 +339,8 @@ subagent生命周期：
 - 记住使用 `task` 工具来隔离多部分目标内的独立任务。
 - 当您有一个复杂的任务需要多个步骤，并且与agent需要完成的其他任务无关时，应该使用 `task` 工具。这些agent非常能干且高效。"""  # noqa: E501
 
-DEFAULT_GENERAL_PURPOSE_DESCRIPTION = "General-purpose agent for researching complex questions, searching for files and content, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you. This agent has access to all tools as the main agent."  # noqa: E501
+# DEFAULT_GENERAL_PURPOSE_DESCRIPTION = "General-purpose agent for researching complex questions, searching for files and content, and executing multi-step tasks. When you are searching for a keyword or file and are not confident that you will find the right match in the first few tries use this agent to perform the search for you. This agent has access to all tools as the main agent."  # noqa: E501
+DEFAULT_GENERAL_PURPOSE_DESCRIPTION = "用于研究复杂问题、搜索文件和内容以及执行多步骤任务的通用agent。当您在搜索关键词或文件时，如果您不确定能在前几次尝试中找到正确匹配项，请使用此agent为您执行搜索。此agent可以访问与主agent相同的所有工具。"  # noqa: E501
 
 
 def _get_subagents(
