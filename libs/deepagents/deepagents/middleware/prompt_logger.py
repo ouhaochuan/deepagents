@@ -206,7 +206,22 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
             # print("PromptLoggerWrapperMiddleware: Wrap model call...")
             self._log_request(request)
         # 调用原始处理函数并返回结果
-        return handler(request)
+        response = handler(request)
+    
+        # 提取 token 使用信息
+        aimessage = response.result[0] if response.result and len(response.result) > 0 else None
+        usage = self.extract_usage_metadata(aimessage)
+    
+        # 打印 token 统计信息
+        if usage:
+            input_tokens = usage.get('input_tokens', 'N/A')
+            output_tokens = usage.get('output_tokens', 'N/A')
+            total_tokens = usage.get('total_tokens', 'N/A')
+            print(f"\033[96mToken usage: Input={input_tokens}, Output={output_tokens}, Total={total_tokens}\033[0m")
+        else:
+            print("\033[93mNo token usage metadata available\033[0m")
+        
+        return response
     
     async def awrap_model_call(
         self,
@@ -219,4 +234,47 @@ class PromptLoggerWrapperMiddleware(PromptLoggerBaseMiddleware):
             # print("PromptLoggerWrapperMiddleware: Async wrap model call...")
             self._log_request(request)
         # 异步调用原始处理函数并返回结果
-        return await handler(request)
+        response = await handler(request)
+    
+        # 提取 token 使用信息
+        aimessage = response.result[0] if response.result and len(response.result) > 0 else None
+        usage = self.extract_usage_metadata(aimessage)
+    
+        # 打印 token 统计信息
+        if usage:
+            input_tokens = usage.get('input_tokens', 'N/A')
+            output_tokens = usage.get('output_tokens', 'N/A')
+            total_tokens = usage.get('total_tokens', 'N/A')
+            print(f"\033[96mToken usage: Input={input_tokens}, Output={output_tokens}, Total={total_tokens}\033[0m")
+        else:
+            print("\033[93mNo token usage metadata available\033[0m")
+        
+        return response
+
+    def extract_usage_metadata(self, message) -> dict:
+      """从 AIMessage 中提取所有可能的 token 信息"""
+      usage = {}
+      
+      # 优先级顺序检查
+      checks = [
+          (lambda m: getattr(m, 'usage_metadata', None)),
+          (lambda m: m.response_metadata.get('tokenUsage') if hasattr(m, 'response_metadata') else None),
+          (lambda m: m.response_metadata.get('usage') if hasattr(m, 'response_metadata') else None),
+          (lambda m: m.additional_kwargs.get('usage') if hasattr(m, 'additional_kwargs') else None),
+      ]
+      
+      for check in checks:
+          candidate = check(message)
+          if candidate:
+              if isinstance(candidate, dict):
+                  usage = candidate
+                  break
+              elif hasattr(candidate, 'input_tokens'):  # UsageMetadata 对象
+                  usage = {
+                      'input_tokens': candidate.input_tokens,
+                      'output_tokens': candidate.output_tokens,
+                      'total_tokens': candidate.total_tokens
+                  }
+                  break
+      
+      return usage

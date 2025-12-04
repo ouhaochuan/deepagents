@@ -74,6 +74,18 @@ def calculate_baseline_tokens(model, agent_dir: Path, system_prompt: str, assist
     except Exception as e:
         # Fallback if token counting fails
         console.print(f"[yellow]Warning: Could not calculate baseline tokens: {e}[/yellow]")
+        # # Try to get token count by actually invoking the model
+        # try:
+        #     console.print("[dim]Attempting to calculate tokens via model invocation...[/dim]")
+        #     response = model.invoke(messages)
+        #     if hasattr(response, 'usage_metadata') and response.usage_metadata:
+        #         token_count = response.usage_metadata.get('input_tokens', 0)
+        #         console.print(f"[green]Successfully calculated baseline tokens: {token_count}[/green]")
+        #         return token_count
+        #     else:
+        #         console.print("[yellow]Model invocation succeeded but no token usage metadata available.[/yellow]")
+        # except Exception as invoke_error:
+        #     console.print(f"[yellow]Failed to calculate tokens via model invocation: {invoke_error}[/yellow]")
         return 0
 
 

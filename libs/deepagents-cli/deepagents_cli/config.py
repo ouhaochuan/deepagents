@@ -387,6 +387,7 @@ def create_model() -> BaseChatModel:
         console.print(f"[dim]Using OpenAI model: {model_name}[/dim]")
         return ChatOpenAI(
             model=model_name,
+            stream_usage=True,
         )
     if settings.has_anthropic:
         from langchain_anthropic import ChatAnthropic
