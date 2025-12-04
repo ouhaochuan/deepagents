@@ -203,7 +203,8 @@ READ_FILE_TOOL_DESCRIPTION = """从文件系统中读取文件。您可以通过
 - 结果使用 cat -n 格式返回，行号从 1 开始
 - 您有能力在单个响应中调用多个工具。批量推测性地读取多个可能有用的文件总是更好的选择。
 - 如果您读取了一个存在但内容为空的文件，您将在文件内容位置收到系统提醒警告。
-- 在编辑文件之前，您应该始终确保文件已被读取。"""
+- 在编辑文件之前，您应该始终确保文件已被读取。
+- 如果用户明确要求忽略对读取到的超长结果进行截断的处理，请使用 `ignore_output_truncate` 参数。"""
 
 # EDIT_FILE_TOOL_DESCRIPTION = """Performs exact string replacements in files.
 
@@ -518,6 +519,7 @@ def _read_file_tool_generator(
         runtime: ToolRuntime[None, FilesystemState],
         offset: int = DEFAULT_READ_OFFSET,
         limit: int = DEFAULT_READ_LIMIT,
+        ignore_output_truncate: bool = False,
     ) -> str:
         """Synchronous wrapper for read_file tool."""
         resolved_backend = _get_backend(backend, runtime)
@@ -995,7 +997,7 @@ class FilesystemMiddleware(AgentMiddleware):
         system_prompt: str | None = None,
         custom_tool_descriptions: dict[str, str] | None = None,
         tool_token_limit_before_evict: int | None = 20000,
-        ignore_tools: list[str] | None = None,
+        ignore_output_truncate_tools: list[str] | None = None,
     ) -> None:
         """Initialize the filesystem middleware.
 
@@ -1005,7 +1007,7 @@ class FilesystemMiddleware(AgentMiddleware):
             system_prompt: Optional custom system prompt override.
             custom_tool_descriptions: Optional custom tool descriptions override.
             tool_token_limit_before_evict: Optional token limit before evicting a tool result to the filesystem.
-            ignore_tools: Optional list of tools to ignore intercept_large_tool_result logic.
+            ignore_output_truncate_tools: Optional list of tools to ignore intercept_large_tool_result logic.
         """
         self.tool_token_limit_before_evict = tool_token_limit_before_evict
 
@@ -1016,7 +1018,7 @@ class FilesystemMiddleware(AgentMiddleware):
         self._custom_system_prompt = system_prompt
 
         self.tools = _get_filesystem_tools(self.backend, custom_tool_descriptions)
-        self.ignore_tools = ignore_tools or []
+        self.ignore_output_truncate_tools = ignore_output_truncate_tools or []
     def _get_backend(self, runtime: ToolRuntime) -> BackendProtocol:
         """Get the resolved backend instance from backend or factory.
 
@@ -1214,7 +1216,11 @@ class FilesystemMiddleware(AgentMiddleware):
             The raw ToolMessage, or a pseudo tool message with the ToolResult in state.
         """
         # Skip processing for ignored tools
-        if request.tool_call["name"] in self.ignore_tools:
+        if request.tool_call["name"] in self.ignore_output_truncate_tools:
+            return handler(request)
+
+        # 判断args中是否有忽略截断的参数
+        if request.tool_call["args"] and "ignore_output_truncate" in request.tool_call["args"]:  # 忽略截断
             return handler(request)
             
         if self.tool_token_limit_before_evict is None or request.tool_call["name"] in TOOL_GENERATORS:
@@ -1238,7 +1244,11 @@ class FilesystemMiddleware(AgentMiddleware):
             The raw ToolMessage, or a pseudo tool message with the ToolResult in state.
         """
         # Skip processing for ignored tools
-        if request.tool_call["name"] in self.ignore_tools:
+        if request.tool_call["name"] in self.ignore_output_truncate_tools:
+            return await handler(request)
+
+        # 判断args中是否有忽略截断的参数
+        if request.tool_call["args"] and "ignore_output_truncate" in request.tool_call["args"]:  # 忽略截断
             return await handler(request)
         
         # 打印工具调用详情
