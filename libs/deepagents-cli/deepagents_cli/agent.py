@@ -92,7 +92,7 @@ def reset_agent(agent_name: str, source_agent: str | None = None) -> None:
     console.print(f"Location: {agent_dir}\n", style=COLORS["dim"])
 
 
-def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str:
+def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str:# 提示词注入点-这是agent-cli最基本的提示词
     """获取agent的基本系统提示。
 
     参数:
@@ -141,16 +141,16 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str
 - 永远不要使用相对路径 - 始终构建完整的绝对路径
 
 """
+# 这段与SkillsMiddleware重复了
+# ### 技能目录
+
+# 您的技能存储在: `{agent_dir_path}/skills/`
+# 技能可能包含脚本或支持文件。执行技能脚本时使用真实文件系统路径:
+# 示例: `bash python {agent_dir_path}/skills/web-research/script.py`
 
     return (
         working_dir_section
-        + f"""### 技能目录
-
-您的技能存储在: `{agent_dir_path}/skills/`
-技能可能包含脚本或支持文件。执行技能脚本时使用真实文件系统路径:
-示例: `bash python {agent_dir_path}/skills/web-research/script.py`
-
-### 人类参与工具审批
+        + f"""### 人类参与工具审批
 
 某些工具调用需要用户批准才能执行。当用户拒绝工具调用时:
 1. 立即接受他们的决定 - 不要重试相同命令
@@ -170,23 +170,24 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str
 5. 必要时通过提及页面标题或URL来引用来源
 6. 如果搜索没有找到所需内容，解释您找到了什么并询问澄清问题
 
-用户只能看到您的文本回复 - 不是工具结果。使用web_search后始终提供完整、自然语言的答案。
+用户只能看到您的文本回复 - 不是工具结果。使用web_search后始终提供完整、自然语言的答案。""")
 
-### 待办事项列表管理
 
-当使用write_todos工具时:
-1. 保持待办事项列表最小化 - 最多3-6个项目
-2. 仅为真正需要跟踪的复杂、多步骤任务创建待办事项
-3. 将工作分解为清晰、可操作的项目，避免过度细分
-4. 对于简单任务（1-2步），直接执行而不创建待办事项
-5. 首次为任务创建待办事项列表时，务必询问用户计划是否良好后再开始工作
-   - 创建待办事项，让它们渲染，然后询问："这个计划看起来好吗？"或类似问题
-   - 等待用户回应后再将第一个待办事项标记为in_progress
-   - 如果他们想要更改，请相应调整计划
-6. 在完成每个项目后及时更新待办事项状态
+# 这段跟内置todolist工具提示词重复
+# ### 待办事项列表管理
 
-待办事项列表是一个规划工具 - 明智地使用它以避免用过多的任务跟踪压倒用户。"""
-    )
+# 当使用write_todos工具时:
+# 1. 保持待办事项列表最小化 - 最多3-6个项目
+# 2. 仅为真正需要跟踪的复杂、多步骤任务创建待办事项
+# 3. 将工作分解为清晰、可操作的项目，避免过度细分
+# 4. 对于简单任务（1-2步），直接执行而不创建待办事项
+# 5. 首次为任务创建待办事项列表时，务必询问用户计划是否良好后再开始工作
+#    - 创建待办事项，让它们渲染，然后询问："这个计划看起来好吗？"或类似问题
+#    - 等待用户回应后再将第一个待办事项标记为in_progress
+#    - 如果他们想要更改，请相应调整计划
+# 6. 在完成每个项目后及时更新待办事项状态
+
+# 待办事项列表是一个规划工具 - 明智地使用它以避免用过多的任务跟踪压倒用户。
 
 
 def _format_write_file_description(
@@ -373,7 +374,7 @@ def create_agent_with_config(
 
         # Middleware: AgentMemoryMiddleware, SkillsMiddleware, ShellToolMiddleware
         agent_middleware = [
-            AgentMemoryMiddleware(settings=settings, assistant_id=assistant_id),
+            AgentMemoryMiddleware(settings=settings, assistant_id=assistant_id, use_long_term_memory_prompt=settings.use_long_term_memory_system_prompt),
             SkillsMiddleware(
                 skills_dir=skills_dir,
                 assistant_id=assistant_id,
@@ -397,7 +398,7 @@ def create_agent_with_config(
         # NOTE: File operations (ls, read, write, edit, glob, grep) and execute tool
         # are automatically provided by create_deep_agent when backend is a SandboxBackend.
         agent_middleware = [
-            AgentMemoryMiddleware(settings=settings, assistant_id=assistant_id),
+            AgentMemoryMiddleware(settings=settings, assistant_id=assistant_id, use_long_term_memory_prompt=settings.use_long_term_memory_system_prompt),
             SkillsMiddleware(
                 skills_dir=skills_dir,
                 assistant_id=assistant_id,

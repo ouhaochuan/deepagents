@@ -184,12 +184,12 @@ class SkillsMiddleware(AgentMiddleware):
             Path(project_skills_dir).expanduser() if project_skills_dir else None
         )
         # Store display paths for prompts
-        self.user_skills_display = f"~/.deepagents/{assistant_id}/skills"
+        # self.user_skills_display = f"~/.deepagents/{assistant_id}/skills"
         self.system_prompt_template = SKILLS_SYSTEM_PROMPT
 
     def _format_skills_locations(self) -> str:
         """Format skills locations for display in system prompt."""
-        locations = [f"**User Skills**: `{self.user_skills_display}`"]
+        locations = [f"**User Skills**: `{self.skills_dir}`"]
         if self.project_skills_dir:
             locations.append(
                 f"**Project Skills**: `{self.project_skills_dir}` (overrides user skills)"
@@ -199,7 +199,7 @@ class SkillsMiddleware(AgentMiddleware):
     def _format_skills_list(self, skills: list[SkillMetadata]) -> str:
         """Format skills metadata for display in system prompt."""
         if not skills:
-            locations = [f"{self.user_skills_display}/"]
+            locations = [f"{self.skills_dir}/"]
             if self.project_skills_dir:
                 locations.append(f"{self.project_skills_dir}/")
             return f"(No skills available yet. You can create skills in {' or '.join(locations)})"

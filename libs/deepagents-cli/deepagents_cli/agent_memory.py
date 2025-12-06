@@ -321,6 +321,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         settings: Settings,
         assistant_id: str,
         system_prompt_template: str | None = None,
+        use_long_term_memory_prompt: bool = True,
     ) -> None:
         """Initialize the agent memory middleware.
 
@@ -329,6 +330,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
             assistant_id: The agent identifier.
             system_prompt_template: Optional custom template for injecting
                 agent memory into system prompt.
+            use_long_term_memory_prompt: Whether to use LONGTERM_MEMORY_SYSTEM_PROMPT.
         """
         self.settings = settings
         self.assistant_id = assistant_id
@@ -350,6 +352,9 @@ class AgentMemoryMiddleware(AgentMiddleware):
 
         # print(f"AgentMemoryMiddleware system_prompt_template: {len(system_prompt_template) if system_prompt_template else 'None'}")
         self.system_prompt_template = system_prompt_template or DEFAULT_MEMORY_SNIPPET
+
+        self.use_long_term_memory_prompt = use_long_term_memory_prompt
+        # print(f"AgentMemoryMiddleware use_long_term_memory_prompt: {self.use_long_term_memory_prompt}")
 
     def before_agent(
         self,
@@ -378,7 +383,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
             # print(f"Loading user memory from {user_path}")
             if user_path.exists():
                 with contextlib.suppress(OSError, UnicodeDecodeError):
-                    result["user_memory"] = user_path.read_text(encoding="utf-8")
+                    result["user_memory"] = user_path.read_text(encoding="utf-8")# 提示词注入点-agent初始化时从default_agent_prompt_zh.md复制到agent.md中的提示词
 
         # Load project memory if not already in state
         if "project_memory" not in state:
@@ -428,22 +433,19 @@ class AgentMemoryMiddleware(AgentMiddleware):
             project_memory=project_memory if project_memory else "(No project agent.md)",
         )
 
-        system_prompt = "(这一行是调试信息，忽略)来自：AgentMemoryMiddleware system_prompt_template 或 DEFAULT_MEMORY_SNIPPET\n\n" + memory_section
+        system_prompt = memory_section
 
         if base_system_prompt:
-            system_prompt += "\n\n(这一行是调试信息，忽略)来自：AgentMemoryMiddleware request.system_prompt\n\n" + base_system_prompt
+            system_prompt += "\n\n" + base_system_prompt
 
-        # # 处理\.写入文件后变成.
-        # project_deepagents_dir_resovled = project_deepagents_dir.replace("\\.", "\\\\.")
-        # print(f"AgentMemoryMiddleware project_deepagents_dir_resovled: {project_deepagents_dir_resovled}")
-
-        system_prompt += "\n\n(这一行是调试信息，忽略)来自：AgentMemoryMiddleware LONGTERM_MEMORY_SYSTEM_PROMPT\n\n" + LONGTERM_MEMORY_SYSTEM_PROMPT.format(
-            agent_dir_absolute=self.agent_dir_absolute,
-            agent_dir_display=self.agent_dir_display,
-            project_memory_info=project_memory_info,
-            # project_deepagents_dir=project_deepagents_dir_resovled,
-            project_deepagents_dir=project_deepagents_dir
-        )
+        if self.use_long_term_memory_prompt:
+          system_prompt += "\n\n" + LONGTERM_MEMORY_SYSTEM_PROMPT.format(#提示词注入点-记忆系统系统提示词
+              agent_dir_absolute=self.agent_dir_absolute,
+              agent_dir_display=self.agent_dir_display,
+              project_memory_info=project_memory_info,
+              # project_deepagents_dir=project_deepagents_dir_resovled,
+              project_deepagents_dir=project_deepagents_dir
+          )
 
         return system_prompt
 

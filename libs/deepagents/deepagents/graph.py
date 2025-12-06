@@ -129,7 +129,7 @@ def create_deep_agent(
 
     deepagent_middleware = [
         PromptLoggerNodeMiddleware(),
-        TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),
+        TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),# 提示词注入点-todolist工具系统提示词
         FilesystemMiddleware(backend=backend, ignore_output_truncate_tools=["list_directory_tree"]),
         SubAgentMiddleware(
             default_model=model,

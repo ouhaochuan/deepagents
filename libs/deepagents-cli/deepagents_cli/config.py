@@ -145,6 +145,9 @@ class Settings:
     google_api_key: str | None
     tavily_api_key: str | None
 
+    # 是否使用LONGTERM_MEMORY_SYSTEM_PROMPT
+    use_long_term_memory_system_prompt: bool | None
+
     # Project information
     project_root: Path | None
 
@@ -164,6 +167,9 @@ class Settings:
         google_key = os.environ.get("GOOGLE_API_KEY")
         tavily_key = os.environ.get("TAVILY_API_KEY")
 
+        # 是否使用LONGTERM_MEMORY_SYSTEM_PROMPT
+        use_long_term_memory_system_prompt = os.environ.get("USE_LONGTERM_MEMORY_SYSTEM_PROMPT", "true").lower() == "true"
+
         # Detect project
         project_root = _find_project_root(start_path)
 
@@ -173,6 +179,7 @@ class Settings:
             google_api_key=google_key,
             tavily_api_key=tavily_key,
             project_root=project_root,
+            use_long_term_memory_system_prompt=use_long_term_memory_system_prompt,
         )
 
     @property

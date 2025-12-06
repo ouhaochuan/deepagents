@@ -1075,7 +1075,7 @@ class FilesystemMiddleware(AgentMiddleware):
             system_prompt = "\n\n".join(prompt_parts)
             # print(f"FilesystemMiddleware wrap_model_call system_prompt: {system_prompt}")
 
-        if system_prompt:
+        if system_prompt:# 提示词注入点-文件系统系统提示词
             request = request.override(system_prompt=request.system_prompt + "\n\n" + system_prompt if request.system_prompt else system_prompt)
 
         return handler(request)
