@@ -334,7 +334,7 @@ def _info(skill_name: str, *, agent: str = "agent", project: bool = False) -> No
 
     # Read the full SKILL.md file
     skill_path = Path(skill["path"])
-    skill_content = skill_path.read_text()
+    skill_content = skill_path.read_text(encoding="utf-8")
 
     # Determine source label
     source_label = "Project Skill" if skill["source"] == "project" else "User Skill"

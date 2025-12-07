@@ -31,7 +31,7 @@ class ApprovalPreview:
 def _safe_read(path: Path) -> str | None:
     """Read file content, returning None on failure."""
     try:
-        return path.read_text()
+        return path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return None
 
