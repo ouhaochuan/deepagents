@@ -37,6 +37,7 @@ from deepagents_cli.skills import execute_skills_command, setup_skills_parser
 from deepagents_cli.tools import fetch_url, http_request, web_search
 from deepagents_cli.ui import TokenTracker, show_help
 
+from deepagents.utils import load_env_with_fallback_verbose
 
 def check_cli_dependencies() -> None:
     """Check if CLI optional dependencies are installed."""
@@ -301,6 +302,16 @@ async def _run_agent_session(
     tools = [http_request, fetch_url]
     if settings.has_tavily:
         tools.append(web_search)
+    
+    # 读取agent中定义的环境变量
+    load_env_with_fallback_verbose(None, assistant_id)
+    
+    enable_memory = os.getenv("ENABLE_MEMORY")
+    enable_skills = os.getenv("ENABLE_SKILLS")
+    enable_shell = os.getenv("ENABLE_SHELL")
+    print(f"Enable memory: {enable_memory}")
+    print(f"Enable skills: {enable_skills}")
+    print(f"Enable shell: {enable_shell}")
 
     agent, composite_backend = create_cli_agent(
         model=model,
@@ -309,6 +320,9 @@ async def _run_agent_session(
         sandbox=sandbox_backend,
         sandbox_type=sandbox_type,
         auto_approve=session_state.auto_approve,
+        enable_memory=enable_memory,
+        enable_skills=enable_skills,
+        enable_shell=enable_shell,
     )
 
     # Calculate baseline token count for accurate token tracking

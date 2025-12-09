@@ -489,6 +489,7 @@ class AgentMemoryMiddleware(AgentMiddleware):
         Returns:
             The model response from the handler.
         """
+        # print("AgentMemoryMiddleware wrap_model_call")
         system_prompt = self._build_system_prompt(request)
         return handler(request.override(system_prompt=system_prompt))
 
@@ -506,5 +507,6 @@ class AgentMemoryMiddleware(AgentMiddleware):
         Returns:
             The model response from the handler.
         """
+        # print("AgentMemoryMiddleware awrap_model_call")
         system_prompt = self._build_system_prompt(request)
         return await handler(request.override(system_prompt=system_prompt))

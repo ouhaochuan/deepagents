@@ -7,13 +7,13 @@ from typing import Optional
 import dotenv
 
 
-def load_env_with_fallback_verbose(required_vars: Optional[list] = None) -> Optional[str]:
+def load_env_with_fallback_verbose(required_vars: Optional[list] = None, agent_name: Optional[str] = None) -> Optional[str]:
     """
     Enhanced environment variable loading with detailed logging and required variable validation
     
     Args:
         required_vars: List of required environment variables
-        
+        agent_name: Optional agent name for resolve loading path
     Returns:
         Path to loaded .env file, or None if not found
     """
@@ -21,9 +21,11 @@ def load_env_with_fallback_verbose(required_vars: Optional[list] = None) -> Opti
         required_vars = []
     
     search_paths = [
-        ("当前工作目录", Path.cwd() / '.env'),
-        ("用户配置目录", Path.home() / '.deepagents-cli' / '.env')
+        ("当前工作目录", Path.cwd() / '.env')
     ]
+    if agent_name:
+        search_paths.append(("agent目录", Path.home() / '.deepagents' / agent_name / '.env'))
+    search_paths.append(("用户配置目录", Path.home() / '.deepagents-cli' / '.env'))
     
     print("🔍 开始查找 .env 文件...")
     

@@ -280,7 +280,7 @@ This skill directory can include supporting files referenced in the instructions
 """
 
     skill_md = skill_dir / "SKILL.md"
-    skill_md.write_text(template)
+    skill_md.write_text(template, encoding="utf-8")
 
     console.print(f"✓ Skill '{skill_name}' created successfully!", style=COLORS["primary"])
     console.print(f"Location: {skill_dir}\n", style=COLORS["dim"])

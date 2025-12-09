@@ -112,6 +112,9 @@ def create_deep_agent(
     Returns:
         A configured deep agent.
     """
+    # 打印传入的middleware
+    # print(f"middleware: {middleware}")
+
     if model is None:
         model = get_default_model()
 
@@ -164,6 +167,9 @@ def create_deep_agent(
         deepagent_middleware.extend(middleware)
     if interrupt_on is not None:
         deepagent_middleware.append(HumanInTheLoopMiddleware(interrupt_on=interrupt_on))
+
+    # 打印合并后的middleware
+    # print(f"deepagent_middleware: {deepagent_middleware}")
 
     return create_agent(
         model,

@@ -158,22 +158,22 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None) -> str
 3. 提供替代方法或询问澄清
 4. 永远不要再尝试完全相同的被拒绝命令
 
-尊重用户的决定并与他们协作。
+尊重用户的决定并与他们协作。""")
 
-### 网络搜索工具使用
+########################## 暂不需要这个工具
+# ### 网络搜索工具使用
 
-当您使用web_search工具时:
-1. 工具将返回带有标题、URL和内容摘录的搜索结果
-2. 您必须阅读并处理这些结果，然后自然地回应用户
-3. 永远不要直接向用户显示原始JSON或工具结果
-4. 将来自多个来源的信息综合成连贯的答案
-5. 必要时通过提及页面标题或URL来引用来源
-6. 如果搜索没有找到所需内容，解释您找到了什么并询问澄清问题
+# 当您使用web_search工具时:
+# 1. 工具将返回带有标题、URL和内容摘录的搜索结果
+# 2. 您必须阅读并处理这些结果，然后自然地回应用户
+# 3. 永远不要直接向用户显示原始JSON或工具结果
+# 4. 将来自多个来源的信息综合成连贯的答案
+# 5. 必要时通过提及页面标题或URL来引用来源
+# 6. 如果搜索没有找到所需内容，解释您找到了什么并询问澄清问题
 
-用户只能看到您的文本回复 - 不是工具结果。使用web_search后始终提供完整、自然语言的答案。""")
+# 用户只能看到您的文本回复 - 不是工具结果。使用web_search后始终提供完整、自然语言的答案。
 
-
-# 这段跟内置todolist工具提示词重复
+########################## 这段跟内置todolist工具提示词重复
 # ### 待办事项列表管理
 
 # 当使用write_todos工具时:
@@ -365,6 +365,13 @@ def create_cli_agent(
         - agent_graph: Configured LangGraph Pregel instance ready for execution
         - composite_backend: CompositeBackend for file operations
     """
+    enable_memory = str(enable_memory).lower() in ('true', '1', 'yes')
+    enable_skills = str(enable_skills).lower() in ('true', '1', 'yes')
+    enable_shell = str(enable_shell).lower() in ('true', '1', 'yes')
+
+    # print(f"create_cli_agent Enable memory: {enable_memory}")
+    # print(f"create_cli_agent Enable skills: {enable_skills}")
+    # print(f"create_cli_agent Enable shell: {enable_shell}")
     if tools is None:
         tools = []
 
@@ -374,7 +381,7 @@ def create_cli_agent(
         agent_md = agent_dir / "agent.md"
         if not agent_md.exists():
             source_content = get_default_coding_instructions()
-            agent_md.write_text(source_content)
+            agent_md.write_text(source_content, encoding="utf-8")
 
     # Skills directories (if enabled)
     skills_dir = None
@@ -450,9 +457,15 @@ def create_cli_agent(
         # Note: Shell middleware not used in sandbox mode
         # File operations and execute tool are provided by the sandbox backend
 
+    # print(f"create_cli_agent agent_middleware: {agent_middleware}")
+
     # Get or use custom system prompt
     if system_prompt is None:
-        system_prompt = get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type)
+        if not enable_memory:# 如果不启用记忆，则需要读取agent.md一次
+            # 读取agent.md文件
+            source_content = agent_md.read_text(encoding="utf-8")
+            system_prompt = source_content
+        system_prompt += "\n\n" + get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type)
 
     # Configure interrupt_on based on auto_approve setting
     if auto_approve:
