@@ -309,9 +309,11 @@ async def _run_agent_session(
     enable_memory = os.getenv("ENABLE_MEMORY")
     enable_skills = os.getenv("ENABLE_SKILLS")
     enable_shell = os.getenv("ENABLE_SHELL")
+    enable_subagents = os.getenv("ENABLE_SUBAGENTS")
     print(f"Enable memory: {enable_memory}")
     print(f"Enable skills: {enable_skills}")
     print(f"Enable shell: {enable_shell}")
+    print(f"Enable subagents: {enable_subagents}")
 
     agent, composite_backend = create_cli_agent(
         model=model,
@@ -323,6 +325,7 @@ async def _run_agent_session(
         enable_memory=enable_memory,
         enable_skills=enable_skills,
         enable_shell=enable_shell,
+        enable_subagents=enable_subagents,
     )
 
     # Calculate baseline token count for accurate token tracking

@@ -70,6 +70,7 @@ def create_deep_agent(
     debug: bool = False,
     name: str | None = None,
     cache: BaseCache | None = None,
+    enable_subagents: bool = True,
 ) -> CompiledStateGraph:
     """Create a deep agent.
 
@@ -114,6 +115,7 @@ def create_deep_agent(
     """
     # 打印传入的middleware
     # print(f"middleware: {middleware}")
+    enable_subagents = str(enable_subagents).lower() in ('true', '1', 'yes')
 
     if model is None:
         model = get_default_model()
@@ -134,25 +136,30 @@ def create_deep_agent(
         PromptLoggerNodeMiddleware(),
         TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),# 提示词注入点-todolist工具系统提示词
         FilesystemMiddleware(backend=backend, ignore_output_truncate_tools=["list_directory_tree"]),
-        SubAgentMiddleware(
-            default_model=model,
-            default_tools=tools,
-            subagents=subagents if subagents is not None else [],
-            default_middleware=[
-                TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),
-                FilesystemMiddleware(backend=backend),
-                SummarizationMiddleware(
-                    model=model,
-                    trigger=trigger,
-                    keep=keep,
-                    trim_tokens_to_summarize=None,
-                ),
-                AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore"),
-                PatchToolCallsMiddleware(),
-            ],
-            default_interrupt_on=interrupt_on,
-            general_purpose_agent=True,
-        ),
+    ]
+    if enable_subagents:
+        deepagent_middleware.append(
+          SubAgentMiddleware(
+              default_model=model,
+              default_tools=tools,
+              subagents=subagents if subagents is not None else [],
+              default_middleware=[
+                  TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),
+                  FilesystemMiddleware(backend=backend),
+                  SummarizationMiddleware(
+                      model=model,
+                      trigger=trigger,
+                      keep=keep,
+                      trim_tokens_to_summarize=None,
+                  ),
+                  AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore"),
+                  PatchToolCallsMiddleware(),
+              ],
+              default_interrupt_on=interrupt_on,
+              general_purpose_agent=True,
+          )
+        )
+    deepagent_middleware.extend([
         SummarizationMiddleware(
             model=model,
             trigger=trigger,
@@ -162,7 +169,7 @@ def create_deep_agent(
         AnthropicPromptCachingMiddleware(unsupported_model_behavior="ignore"),
         PatchToolCallsMiddleware(),
         DirectoryTreeMiddleware(),
-    ]
+    ])
     if middleware:
         deepagent_middleware.extend(middleware)
     if interrupt_on is not None:

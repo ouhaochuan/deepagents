@@ -338,6 +338,7 @@ def create_cli_agent(
     enable_memory: bool = True,
     enable_skills: bool = True,
     enable_shell: bool = True,
+    enable_subagents: bool = True,
 ) -> tuple[Pregel, CompositeBackend]:
     """Create a CLI-configured agent with flexible options.
 
@@ -368,6 +369,7 @@ def create_cli_agent(
     enable_memory = str(enable_memory).lower() in ('true', '1', 'yes')
     enable_skills = str(enable_skills).lower() in ('true', '1', 'yes')
     enable_shell = str(enable_shell).lower() in ('true', '1', 'yes')
+    enable_subagents = str(enable_subagents).lower() in ('true', '1', 'yes')
 
     # print(f"create_cli_agent Enable memory: {enable_memory}")
     # print(f"create_cli_agent Enable skills: {enable_skills}")
@@ -484,5 +486,6 @@ def create_cli_agent(
         middleware=agent_middleware,
         interrupt_on=interrupt_on,
         checkpointer=InMemorySaver(),
+        enable_subagents=enable_subagents,
     ).with_config(config)
     return agent, composite_backend
