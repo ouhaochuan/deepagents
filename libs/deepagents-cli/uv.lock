@@ -662,7 +662,7 @@ wheels = [
 
 [[package]]
 name = "deepagents"
-version = "0.2.8"
+version = "0.3.0"
 source = { directory = "../deepagents" }
 dependencies = [
     { name = "langchain" },
