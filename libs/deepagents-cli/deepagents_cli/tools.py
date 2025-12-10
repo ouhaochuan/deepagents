@@ -181,3 +181,122 @@ def fetch_url(url: str, timeout: int = 30) -> dict[str, Any]:
         }
     except Exception as e:
         return {"error": f"Fetch URL error: {e!s}", "url": url}
+
+##%%
+from langchain_community.document_loaders import (
+    UnstructuredWordDocumentLoader,
+    UnstructuredPDFLoader,
+    UnstructuredExcelLoader,
+)
+import os
+from typing import Optional
+
+def load_word(file_path: str, element_mode: Optional[bool] = None) -> str:
+    """Load a word from a file.
+
+    This tool loads a word from a file and returns it's content as json format.
+
+    Args:
+        file_path: The absolute path to the file containing the word
+        element_mode: Whether to load the document as elements or not
+
+    Returns:
+        The word file content as json format loaded from the file
+    """
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}
+
+    if element_mode:
+        loader = UnstructuredWordDocumentLoader(file_path, mode="elements")
+    else:
+        loader = UnstructuredWordDocumentLoader(file_path)
+    data = loader.load()
+    json_text = serialize_data_to_json(data)
+    return json_text
+
+def load_excel(file_path: str, element_mode: Optional[bool] = None) -> str:
+    """Load an Excel file.
+
+    This tool loads an Excel file and returns it's content as json format.
+
+    Args:
+        file_path: The absolute path to the file containing the Excel file
+        element_mode: Whether to load the document as elements or not
+
+    Returns:
+        The Excel file content as json format loaded from the file
+    """
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}
+    
+    if element_mode:
+        loader = UnstructuredExcelLoader(file_path, mode="elements")
+    else:
+        loader = UnstructuredExcelLoader(file_path)
+
+    data = loader.load()
+    json_text = serialize_data_to_json(data)
+    return json_text
+
+def load_pdf(file_path: str, element_mode: Optional[bool] = None) -> str:
+    """Load a PDF from a file.
+
+    This tool loads a PDF from a file and returns it's content as json format.
+
+    Args:
+        file_path: The absolute path to the file containing the PDF
+        element_mode: Whether to load the document as elements or not
+
+    Returns:
+        The PDF content as json format loaded from the file
+    """
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        return {"error": "File not found"}
+    
+    if element_mode:
+        loader = UnstructuredPDFLoader(file_path, mode="elements")
+    else:
+        loader = UnstructuredPDFLoader(file_path)
+
+    data = loader.load()
+    json_text = serialize_data_to_json(data)
+    return json_text
+
+import json
+def serialize_data_to_json(data):
+    """
+    将加载的数据序列化为JSON文本
+    
+    Args:
+        data: 从UnstructuredWordDocumentLoader.load()返回的数据
+        
+    Returns:
+        str: 序列化后的JSON文本
+    """
+    # 处理Document对象，提取可序列化的属性
+    serializable_data = []
+    for doc in data:
+        serializable_doc = {
+            "page_content": doc.page_content,
+            "metadata": doc.metadata
+        }
+        serializable_data.append(serializable_doc)
+    
+    # 转换为JSON字符串
+    return json.dumps(serializable_data, ensure_ascii=False, indent=2)
+
+# #%%
+# output = load_word("c:\\Users\\ouhaochuan\\Downloads\\20250928073821.docx")
+# print(output)
+
+# #%%
+# output = load_excel("C:\\Users\\ouhaochuan\\Downloads\\工日提交.xlsx")
+# print(output)
+
+# #%%
+# output = load_pdf("C:\\Users\\ouhaochuan\\Documents\\WeChat Files\\ouhaochuan\\FileStorage\\File\\2025-05\\110kV塘下（先锋）至燕罗双回线路工程（电缆部分） 441-S6967Z-D0401 (4)\\17 主要设备材料清册.pdf",
+#                   True)
+# print(output)

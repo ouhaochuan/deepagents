@@ -469,6 +469,8 @@ def create_cli_agent(
             # 读取agent.md文件
             source_content = agent_md.read_text(encoding="utf-8")
             system_prompt = source_content
+        else:
+            system_prompt = ""
         system_prompt += "\n\n" + get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type)
 
     # Configure interrupt_on based on auto_approve setting
