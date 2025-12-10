@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import difflib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -115,6 +116,16 @@ class FileOperationRecord:
     read_output: str | None = None
     hitl_approved: bool = False
 
+    def print(self) -> None:
+        """Print a file operation record."""
+        print(f"tool_name: {self.tool_name}")
+        print(f"display_path: {self.display_path}")
+        print(f"physical_path: {self.physical_path}")
+        print(f"tool_call_id: {self.tool_call_id}")
+        print(f"args: {self.args}")
+        print(f"status: {self.status}")
+        print(f"error: {self.error}")
+        print(f"metrics: {self.metrics}")
 
 def resolve_physical_path(path_str: str | None, assistant_id: str | None) -> Path | None:
     """Convert a virtual/relative path to a physical filesystem path."""
@@ -340,26 +351,24 @@ class FileOpTracker:
         if record.tool_name == "read_file":
             record.read_output = content_text
             lines = _count_lines(content_text)
-            print(f'read_file lines: {lines}')
             record.metrics.lines_read = lines
             offset = record.args.get("offset")
-            print(f'read_file offset: {offset}')
             limit = record.args.get("limit")
-            print(f'read_file limit: {limit}')
             if isinstance(offset, int):
                 record.metrics.start_line = offset + 1
-                print(f'read_file start_line: {record.metrics.start_line}')
                 if lines:
                     record.metrics.end_line = offset + lines
-                    print(f'read_file end_line: {record.metrics.end_line}')
             elif lines:
                 record.metrics.start_line = 1
                 record.metrics.end_line = lines
-                print(f'read_file start_line: {record.metrics.start_line}')
-                print(f'read_file end_line: {record.metrics.end_line}')
             if isinstance(limit, int) and lines > limit:
                 record.metrics.end_line = (record.metrics.start_line or 1) + limit - 1
-                print(f'read_file end_line: {record.metrics.end_line}')
+            if os.getenv("DEBUG_TOOL_CALL_INFO", "false") == "true":
+              print(f'read_file lines: {lines}')
+              print(f'read_file offset: {offset}')
+              print(f'read_file limit: {limit}')
+              print(f'read_file start_line: {record.metrics.start_line}')
+              print(f'read_file end_line: {record.metrics.end_line}')
         else:
             # For write/edit operations, read back from backend (or local filesystem)
             self._populate_after_content(record)

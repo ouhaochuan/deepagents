@@ -40,8 +40,10 @@ def format_tool_display(tool_name: str, tool_args: dict) -> str:
         shell(command="pip install foo") → 'shell("pip install foo")'
     """
 
-    def abbreviate_path(path_str: str, max_length: int = 60) -> str:
+    def abbreviate_path(path_str: str, max_length: int = 200) -> str:
         """Abbreviate a file path intelligently - show basename or relative path."""
+        # print(f"Abbreviating path length: {len(path_str)}")
+        # print(f"Abbreviating path: {path_str}")
         try:
             path = Path(path_str)
 

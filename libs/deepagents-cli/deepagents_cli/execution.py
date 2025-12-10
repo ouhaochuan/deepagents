@@ -3,6 +3,7 @@
 import asyncio
 import json
 import sys
+import os
 
 from langchain.agents.middleware.human_in_the_loop import (
     ActionRequest,
@@ -251,6 +252,7 @@ async def execute_task(
     tool_call_buffers: dict[str | int, dict] = {}
     # Buffer assistant text so we can render complete markdown segments
     pending_text = ""
+    pending_reasoning = ""
 
     def flush_text_buffer(*, final: bool = False) -> None:
         """Flush accumulated assistant text as rendered markdown when appropriate."""
@@ -362,6 +364,12 @@ async def execute_task(
                         tool_status = getattr(message, "status", "success")
                         tool_content = format_tool_message_content(message.content)
                         record = file_op_tracker.complete_with_message(message)
+                        if os.getenv("DEBUG_TOOL_CALL_INFO", "false") == "true":
+                          print(f"tool_name: {tool_name}")
+                          print(f"tool_status: {tool_status}")
+                          print(f"tool_content length: {len(tool_content)}")
+                          if record:
+                            record.print()
 
                         # Reset spinner message after tool completes
                         if spinner_active:
@@ -430,13 +438,32 @@ async def execute_task(
 
                         # Handle reasoning blocks
                         elif block_type == "reasoning":
-                            flush_text_buffer(final=True)
-                            reasoning = block.get("reasoning", "")
-                            if reasoning and spinner_active:
-                                status.stop()
-                                spinner_active = False
-                                # Could display reasoning differently if desired
-                                # For now, skip it or handle minimally
+                            # flush_text_buffer(final=True)
+                            # reasoning = block.get("reasoning", "")
+                            # if reasoning and spinner_active:
+                            #     status.stop()
+                            #     spinner_active = False
+                            #     # Could display reasoning differently if desired
+                            #     # For now, skip it or handle minimally
+                            reasoning_delta = block.get("reasoning", "")
+                            if reasoning_delta:
+                                pending_reasoning += reasoning_delta
+                                if spinner_active:
+                                    status.stop()
+                                    spinner_active = False
+                                    
+                                # 清除上一次显示（可选）
+                                # sys.stdout.write('\033[1A\033[2K')  # 清除上一行
+                                
+                                # 流式更新推理过程显示
+                                console.print(
+                                    Panel(
+                                        Markdown(pending_reasoning),
+                                        title="[bold blue]🧠 思考中...[/bold blue]",
+                                        border_style="blue",
+                                        expand=False
+                                    )
+                                )
 
                         # Handle tool call chunks
                         # Some models (OpenAI, Anthropic) stream tool_call_chunks
@@ -509,6 +536,10 @@ async def execute_task(
                                 else:
                                     file_op_tracker.update_args(buffer_id, parsed_args)
                             tool_call_buffers.pop(buffer_key, None)
+                            if os.getenv("DEBUG_TOOL_CALL_INFO", "false") == "true":
+                                # 添加以下打印语句，确保只在工具调用完整解析后打印一次
+                                print(f"AI发起的完整工具调用: {buffer_name}")
+                                print(f"AI发起的完整参数: {parsed_args}")
                             icon = tool_icons.get(buffer_name, "🔧")
 
                             if spinner_active:
