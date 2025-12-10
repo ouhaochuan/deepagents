@@ -306,14 +306,16 @@ async def _run_agent_session(
     # 读取agent中定义的环境变量
     load_env_with_fallback_verbose(None, assistant_id)
     
-    enable_memory = os.getenv("ENABLE_MEMORY")
-    enable_skills = os.getenv("ENABLE_SKILLS")
-    enable_shell = os.getenv("ENABLE_SHELL")
-    enable_subagents = os.getenv("ENABLE_SUBAGENTS")
+    enable_memory = os.getenv("ENABLE_MEMORY", "true")
+    enable_skills = os.getenv("ENABLE_SKILLS", "true")
+    enable_shell = os.getenv("ENABLE_SHELL", "true")
+    enable_subagents = os.getenv("ENABLE_SUBAGENTS", "true")
+    enable_todos = os.getenv("ENABLE_TODOS", "true")
     print(f"Enable memory: {enable_memory}")
     print(f"Enable skills: {enable_skills}")
     print(f"Enable shell: {enable_shell}")
     print(f"Enable subagents: {enable_subagents}")
+    print(f"Enable todos: {enable_todos}")
 
     agent, composite_backend = create_cli_agent(
         model=model,
@@ -326,6 +328,7 @@ async def _run_agent_session(
         enable_skills=enable_skills,
         enable_shell=enable_shell,
         enable_subagents=enable_subagents,
+        enable_todos=enable_todos,
     )
 
     # Calculate baseline token count for accurate token tracking

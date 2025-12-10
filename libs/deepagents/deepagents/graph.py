@@ -71,6 +71,7 @@ def create_deep_agent(
     name: str | None = None,
     cache: BaseCache | None = None,
     enable_subagents: bool = True,
+    enable_todos: bool = True,
 ) -> CompiledStateGraph:
     """Create a deep agent.
 
@@ -109,6 +110,8 @@ def create_deep_agent(
         debug: Whether to enable debug mode. Passed through to create_agent.
         name: The name of the agent. Passed through to create_agent.
         cache: The cache to use for the agent. Passed through to create_agent.
+        enable_subagents: Whether to enable subagents.
+        enable_todos: Whether to enable the todo list tool.
 
     Returns:
         A configured deep agent.
@@ -116,6 +119,7 @@ def create_deep_agent(
     # 打印传入的middleware
     # print(f"middleware: {middleware}")
     enable_subagents = str(enable_subagents).lower() in ('true', '1', 'yes')
+    enable_todos = str(enable_todos).lower() in ('true', '1', 'yes')
 
     if model is None:
         model = get_default_model()
@@ -134,9 +138,14 @@ def create_deep_agent(
 
     deepagent_middleware = [
         PromptLoggerNodeMiddleware(),
-        TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),# 提示词注入点-todolist工具系统提示词
-        FilesystemMiddleware(backend=backend, ignore_output_truncate_tools=["list_directory_tree"]),
     ]
+    if enable_todos:
+        deepagent_middleware.append(
+            TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),# 提示词注入点-todolist工具系统提示词
+        )
+    deepagent_middleware.append(
+        FilesystemMiddleware(backend=backend, ignore_output_truncate_tools=["list_directory_tree"]),
+    )
     if enable_subagents:
         deepagent_middleware.append(
           SubAgentMiddleware(
