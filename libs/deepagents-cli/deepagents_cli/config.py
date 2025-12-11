@@ -341,7 +341,8 @@ class Settings:
         if not self.project_root:
             return None
         skills_dir = self.get_project_skills_dir()
-        skills_dir.mkdir(parents=True, exist_ok=True)
+        if skills_dir is not None:
+            skills_dir.mkdir(parents=True, exist_ok=True)
         return skills_dir
 
 

@@ -82,10 +82,10 @@ def prompt_for_tool_approval(
         import tty  # type: ignore
 
         fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
+        old_settings = termios.tcgetattr(fd) # type: ignore
 
         try:
-            tty.setraw(fd)
+            tty.setraw(fd) # type: ignore
             # Hide cursor during menu interaction
             sys.stdout.write("\033[?25l")
             sys.stdout.flush()
@@ -156,7 +156,7 @@ def prompt_for_tool_approval(
             # Show cursor again
             sys.stdout.write("\033[?25h")
             sys.stdout.flush()
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings) # type: ignore
 
     except Exception:
         # Fallback for non-Unix systems
@@ -225,7 +225,7 @@ async def execute_task(
     captured_output_tokens = 0
     current_todos = None  # Track current todo list state
 
-    status = console.status(f"[bold {COLORS['thinking']}]Agent is thinking...", spinner="dots")
+    status = console.status(f"[bold {COLORS['thinking']}]Agent 正在生成回复...", spinner="dots")
     status.start()
     spinner_active = True
 
@@ -435,6 +435,10 @@ async def execute_task(
                             text = block.get("text", "")
                             if text:
                                 pending_text += text
+                                if not spinner_active:
+                                    status.start()
+                                    spinner_active = True
+                                    console.print("【结束思考】\n\n", style="dim yellow")
 
                         # Handle reasoning blocks
                         elif block_type == "reasoning":
@@ -451,6 +455,7 @@ async def execute_task(
                                 if spinner_active:
                                     status.stop()
                                     spinner_active = False
+                                    console.print("【开始思考】", style="dim yellow")
                                 # 添加下面这行来流式输出推理内容
                                 console.print(reasoning_delta, style="dim", end="")
                                 
