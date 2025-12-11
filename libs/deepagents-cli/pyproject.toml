@@ -18,6 +18,7 @@ dependencies = [
   "markdownify>=0.13.0",
   "langchain>=1.0.7",
   "runloop-api-client>=0.69.0",
+  "langchain-community>=0.4.1",
 ]
 
 [project.scripts]
@@ -119,4 +120,6 @@ warn_return_any = false
 
 [tool.uv.sources]
 deepagents = { path = "../deepagents", editable = true }
-langchain = { path = "F:/Development/AI/langchain/langchain/libs/langchain_v1", editable = true }
+langchain = { path = "../../../langchain195/libs/langchain_v1", editable = true }
+langchain-openai = { path = "../../../langchain195/libs/partners/openai", editable = true }
+langchain-community = { path = "../../../langchain-community195/libs/community", editable = true }
