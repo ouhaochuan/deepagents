@@ -451,19 +451,9 @@ async def execute_task(
                                 if spinner_active:
                                     status.stop()
                                     spinner_active = False
-                                    
-                                # 清除上一次显示（可选）
-                                # sys.stdout.write('\033[1A\033[2K')  # 清除上一行
+                                # 添加下面这行来流式输出推理内容
+                                console.print(reasoning_delta, style="dim", end="")
                                 
-                                # 流式更新推理过程显示
-                                console.print(
-                                    Panel(
-                                        Markdown(pending_reasoning),
-                                        title="[bold blue]🧠 思考中...[/bold blue]",
-                                        border_style="blue",
-                                        expand=False
-                                    )
-                                )
 
                         # Handle tool call chunks
                         # Some models (OpenAI, Anthropic) stream tool_call_chunks
