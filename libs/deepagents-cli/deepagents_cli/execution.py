@@ -229,6 +229,10 @@ async def execute_task(
     status.start()
     spinner_active = True
 
+    think_streaming = False     # 流式输出思考内容中
+    answering = False           # 流式输出回复中
+    tool_call_streaming = False # 流式输出工具调用中
+
     tool_icons = {
         "read_file": "📖",
         "write_file": "✏️",
@@ -311,6 +315,7 @@ async def execute_task(
                                     )
                                     pending_interrupts[interrupt_obj.id] = validated_request
                                     interrupt_occurred = True
+                                    print(f"存在中断，interrupt_obj.id：{interrupt_obj.id}")
                                 except ValidationError as e:
                                     console.print(
                                         f"[yellow]Warning: Invalid HITL request data: {e}[/yellow]",
@@ -371,9 +376,11 @@ async def execute_task(
                           if record:
                             record.print()
 
+                        print(f"ToolMessage 工具执行完成 spinner_active: {spinner_active}")
                         # Reset spinner message after tool completes
                         if spinner_active:
-                            status.update(f"[bold {COLORS['thinking']}]Agent is thinking...")
+                            print("ToolMessage 更新Agent 正在生成回复...")
+                            status.update(f"[bold {COLORS['thinking']}]Agent 正在生成回复...", spinner="dots")
 
                         if tool_name == "shell" and tool_status != "success":
                             flush_text_buffer(final=True)
@@ -404,6 +411,8 @@ async def execute_task(
                             render_file_operation(record)
                             console.print()
                             if not spinner_active:
+                                print("ToolMessage 更新Agent 正在生成回复...")
+                                status.update(f"[bold {COLORS['thinking']}]Agent 正在生成回复...", spinner="dots")
                                 status.start()
                                 spinner_active = True
 
@@ -435,10 +444,22 @@ async def execute_task(
                             text = block.get("text", "")
                             if text:
                                 pending_text += text
-                                if not spinner_active:
-                                    status.start()
-                                    spinner_active = True
-                                    console.print("【结束思考】\n\n", style="dim yellow")
+                                # if not spinner_active:
+                                #     status.start()
+                                #     spinner_active = True
+                                #     console.print("【结束思考】\n\n", style="dim yellow")
+                                if spinner_active:
+                                    status.stop()
+                                    spinner_active = False
+                                if not answering:
+                                    answering = True
+                                    think_streaming = False
+                                    console.print("【结束思考】\n\n", style="dim cyan bold")
+                                    console.print("【开始回复】", style="dim yellow bold")
+                                    # 去掉text开头的换行符
+                                    text = text.lstrip("\n")
+                                # 添加下面这行来流式输出回复内容
+                                console.print(text, style="dim", end="")
 
                         # Handle reasoning blocks
                         elif block_type == "reasoning":
@@ -455,7 +476,10 @@ async def execute_task(
                                 if spinner_active:
                                     status.stop()
                                     spinner_active = False
-                                    console.print("【开始思考】", style="dim yellow")
+                                if not think_streaming:
+                                    think_streaming = True
+                                    answering = False
+                                    console.print("【开始思考】", style="dim cyan bold")
                                 # 添加下面这行来流式输出推理内容
                                 console.print(reasoning_delta, style="dim", end="")
                                 
@@ -464,6 +488,12 @@ async def execute_task(
                         # Some models (OpenAI, Anthropic) stream tool_call_chunks
                         # Others (Gemini) don't stream them and just return the full tool_call
                         elif block_type in ("tool_call_chunk", "tool_call"):
+                            if not tool_call_streaming:
+                                tool_call_streaming = True
+                                answering = False
+                                status.update(f"[bold {COLORS['thinking']}]工具调用流式输出中...")
+                                status.start()
+                                spinner_active = True
                             chunk_name = block.get("name")
                             chunk_args = block.get("args")
                             chunk_id = block.get("id")
@@ -551,11 +581,25 @@ async def execute_task(
                             )
 
                             # Restart spinner with context about which tool is executing
-                            status.update(f"[bold {COLORS['thinking']}]Executing {display_str}...")
+                            status.update(f"[bold {COLORS['thinking']}]工具开始执行 {display_str}...")
                             status.start()
                             spinner_active = True
 
+                            print("工具调用流式输出完成，开始执行工具...")
+
                     if getattr(message, "chunk_position", None) == "last":
+                        if tool_call_streaming:
+                            tool_call_streaming = False
+                            console.print("【结束回复】\n\n", style="dim yellow bold")
+                        if answering:
+                            answering = False
+                            # print("最后一个回复chunk，结束回复")
+                            console.print("\n【结束回复】\n\n", style="dim yellow bold")
+                        # 理论上这个if不可能发生
+                        # if think_streaming:
+                        #     think_streaming = False
+                        #     print("最后一个思考chunk，结束思考")
+                        #     console.print("【结束思考】", style="dim cyan bold")
                         flush_text_buffer(final=True)
 
             # After streaming loop - handle interrupt if it occurred
@@ -599,6 +643,7 @@ async def execute_task(
                         for action_index, action_request in enumerate(
                             hitl_request["action_requests"]
                         ):
+                            print("等待用户反馈中断处理方式...")
                             decision = prompt_for_tool_approval(
                                 action_request,
                                 assistant_id,
@@ -653,6 +698,7 @@ async def execute_task(
                     console.print()
                     return
 
+                print("有中断并且用同意执行")
                 # Resume the agent with the human decision
                 stream_input = Command(resume=hitl_response)
                 # Continue the while loop to restream

@@ -1,10 +1,16 @@
 {
   "python.testing.pytestArgs": [
-    "./libs/deepagents/tests"
+    "libs"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "python.analysis.extraPaths": [
-    "./libs/deepagents"
-  ]
+    "./libs/deepagents",
+    "./libs/deepagents-cli"
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportTypedDictNotRequiredAccess": "none",
+    "reportArgumentType": "none",
+    "reportCallIssue": "none"
+  }
 }

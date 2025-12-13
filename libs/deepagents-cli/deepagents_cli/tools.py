@@ -205,7 +205,7 @@ def load_word(file_path: str, element_mode: Optional[bool] = None) -> str:
     """
     # 检查文件是否存在
     if not os.path.exists(file_path):
-        return {"error": "File not found"}
+        return '{"error": "File not found"}'
 
     if element_mode:
         loader = UnstructuredWordDocumentLoader(file_path, mode="elements")
@@ -229,7 +229,7 @@ def load_excel(file_path: str, element_mode: Optional[bool] = None) -> str:
     """
     # 检查文件是否存在
     if not os.path.exists(file_path):
-        return {"error": "File not found"}
+        return '{"error": "File not found"}'
     
     if element_mode:
         loader = UnstructuredExcelLoader(file_path, mode="elements")
@@ -254,7 +254,7 @@ def load_pdf(file_path: str, element_mode: Optional[bool] = None) -> str:
     """
     # 检查文件是否存在
     if not os.path.exists(file_path):
-        return {"error": "File not found"}
+        return '{"error": "File not found"}'
     
     if element_mode:
         loader = UnstructuredPDFLoader(file_path, mode="elements")
@@ -300,3 +300,33 @@ def serialize_data_to_json(data):
 # output = load_pdf("C:\\Users\\ouhaochuan\\Documents\\WeChat Files\\ouhaochuan\\FileStorage\\File\\2025-05\\110kV塘下（先锋）至燕罗双回线路工程（电缆部分） 441-S6967Z-D0401 (4)\\17 主要设备材料清册.pdf",
 #                   True)
 # print(output)
+
+def copy_and_rename_template_file(template_file_path: str, new_file_path: str) -> str:
+    """Copy a template file and rename it.
+
+    This tool copies a template file and renames it.
+
+    Args:
+        template_file_path: The absolute path to the template file
+        new_file_path: The absolute path to the new file
+
+    Returns:
+        The absolute path to the new file
+    """
+    import shutil
+    import os
+    
+    # Check if template file exists
+    if not os.path.exists(template_file_path):
+        raise FileNotFoundError(f"Template file not found: {template_file_path}")
+    
+    # Create directory for new file if it doesn't exist
+    new_file_dir = os.path.dirname(new_file_path)
+    if new_file_dir and not os.path.exists(new_file_dir):
+        os.makedirs(new_file_dir)
+    
+    # Copy and rename the file
+    shutil.copy2(template_file_path, new_file_path)
+    
+    # Return the absolute path to the new file
+    return os.path.abspath(new_file_path)
