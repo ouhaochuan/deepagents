@@ -19,6 +19,7 @@ from pydantic import TypeAdapter, ValidationError
 from rich import box
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.syntax import Syntax
 
 from deepagents_cli.config import COLORS, console
 from deepagents_cli.file_ops import FileOpTracker, build_approval_preview
@@ -269,8 +270,18 @@ async def execute_task(
         if not has_responded:
             console.print("●", style=COLORS["agent"], markup=False, end=" ")
             has_responded = True
-        markdown = Markdown(pending_text.rstrip())
-        console.print(markdown, style=COLORS["agent"])
+        
+        # 判断是否为代码内容（可以根据实际需求扩展判断条件）
+        if pending_text.strip().startswith("<template") or \
+            pending_text.strip().startswith("<style") or \
+            pending_text.strip().startswith("<script"):
+            # 使用 Syntax 渲染 Vue 或其他前端代码
+            syntax = Syntax(pending_text.rstrip(), "vue", theme="lightbulb", line_numbers=False, tab_size=2)
+            console.print(syntax, style=COLORS["agent"])
+        else:
+            # 否则使用 Markdown 渲染普通文本
+            markdown = Markdown(pending_text.rstrip())
+            console.print(markdown, style=COLORS["agent"])
         pending_text = ""
 
     # Stream input - may need to loop if there are interrupts
@@ -451,10 +462,11 @@ async def execute_task(
                                 if spinner_active:
                                     status.stop()
                                     spinner_active = False
-                                if not answering:
-                                    answering = True
+                                if think_streaming:
                                     think_streaming = False
                                     console.print("【结束思考】\n\n", style="dim cyan bold")
+                                if not answering:
+                                    answering = True
                                     console.print("【开始回复】", style="dim yellow bold")
                                     # 去掉text开头的换行符
                                     text = text.lstrip("\n")
@@ -490,6 +502,8 @@ async def execute_task(
                         elif block_type in ("tool_call_chunk", "tool_call"):
                             if not tool_call_streaming:
                                 tool_call_streaming = True
+                                if not answering:
+                                    console.print("【开始回复】", style="dim yellow bold")
                                 answering = False
                                 status.update(f"[bold {COLORS['thinking']}]工具调用流式输出中...")
                                 status.start()
