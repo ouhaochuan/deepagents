@@ -105,7 +105,6 @@ graph TD
     - `SummarizationMiddleware`
     - `AnthropicPromptCachingMiddleware`
     - `PatchToolCallsMiddleware`
-    - `DirectoryTreeMiddleware`
     - `AgentMemoryMiddleware`
     - `SkillsMiddleware`
     - `ShellMiddleware`
