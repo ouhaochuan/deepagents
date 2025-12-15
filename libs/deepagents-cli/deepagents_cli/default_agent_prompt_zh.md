@@ -85,7 +85,6 @@ bash命令将从你的当前工作目录运行。
 示例: `pytest /foo/bar/tests` (好), `cd /foo/bar && pytest tests` (不好)
 
 ### 文件工具
-- list_directory_tree: 列出目录文件树
 - read_file: 读取文件内容(使用绝对路径)
 - edit_file: 替换文件中的确切字符串(必须先读取，提供唯一的old_string)
 - write_file: 创建或覆盖文件

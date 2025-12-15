@@ -404,7 +404,7 @@ EXECUTE_TOOL_DESCRIPTION = """在沙箱环境中执行给定命令，并进行�
 # - edit_file: edit a file in the filesystem
 # - glob: find files matching a pattern (e.g., "**/*.py")
 # - grep: search for text within files"""
-FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `list_directory_tree`、`ls`、`read_file`、`write_file`、`edit_file`、`glob`、`grep`
+FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `ls`、`read_file`、`write_file`、`edit_file`、`glob`、`grep`
 
 您可以使用这些工具与文件系统进行交互。
 所有文件路径必须以/开头（windows系统则以盘符开头）。
@@ -412,10 +412,8 @@ FILESYSTEM_SYSTEM_PROMPT = """## 文件系统工具 `list_directory_tree`、`ls`
 文件操作的重要指南：
 - 始终使用以/开头的虚拟路径（例如，/file.txt）（windows系统则以盘符开头的虚拟路径（例如，C:/file.txt））
 - 根路径(.)映射到当前工作目录
-- 当需要查找文件时，使用list_directory_tree工具探索文件系统结构
 - 不要尝试查找父目录；仅在当前工作目录内搜索或使用绝对路径以避免意外结果
 
-- list_directory_tree: 列出当前工作目录的目录及文件树结构
 - ls：列出目录中的文件（需要绝对路径）
 - read_file：从文件系统读取文件
 - write_file：向文件系统中的文件写入

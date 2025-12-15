@@ -143,7 +143,7 @@ def create_deep_agent(
             TodoListMiddleware(system_prompt=TODO_LIST_SYSTEM_PROMPT),# 提示词注入点-todolist工具系统提示词
         )
     deepagent_middleware.append(
-        FilesystemMiddleware(backend=backend, ignore_output_truncate_tools=["list_directory_tree"]),
+        FilesystemMiddleware(backend=backend),
     )
     if enable_subagents:
         deepagent_middleware.append(
