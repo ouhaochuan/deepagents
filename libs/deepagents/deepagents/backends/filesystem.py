@@ -357,6 +357,7 @@ class FilesystemBackend(BackendProtocol):
                 text=True,
                 timeout=30,
                 check=False,
+                encoding="utf-8",
             )
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return None
