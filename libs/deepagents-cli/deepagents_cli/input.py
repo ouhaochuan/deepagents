@@ -229,40 +229,40 @@ def create_prompt_session(_assistant_id: str, session_state: SessionState) -> Pr
         # Force UI refresh to update toolbar
         event.app.invalidate()
 
-    # Bind regular Enter to submit (intuitive behavior)
-    @kb.add("enter")
-    def _(event) -> None:
-        """Enter submits the input, unless completion menu is active."""
-        buffer = event.current_buffer
+    # # Bind regular Enter to submit (intuitive behavior)
+    # @kb.add("enter")
+    # def _(event) -> None:
+    #     """Enter submits the input, unless completion menu is active."""
+    #     buffer = event.current_buffer
 
-        # If completion menu is showing, apply the current completion
-        if buffer.complete_state:
-            # Get the current completion (the highlighted one)
-            current_completion = buffer.complete_state.current_completion
+    #     # If completion menu is showing, apply the current completion
+    #     if buffer.complete_state:
+    #         # Get the current completion (the highlighted one)
+    #         current_completion = buffer.complete_state.current_completion
 
-            # If no completion is selected (user hasn't navigated), select and apply the first one
-            if not current_completion and buffer.complete_state.completions:
-                # Move to the first completion
-                buffer.complete_next()
-                # Now apply it
-                buffer.apply_completion(buffer.complete_state.current_completion)
-            elif current_completion:
-                # Apply the already-selected completion
-                buffer.apply_completion(current_completion)
-            else:
-                # No completions available, close menu
-                buffer.complete_state = None
-        # Don't submit if buffer is empty or only whitespace
-        elif buffer.text.strip():
-            # Normal submit
-            buffer.validate_and_handle()
-            # If empty, do nothing (don't submit)
+    #         # If no completion is selected (user hasn't navigated), select and apply the first one
+    #         if not current_completion and buffer.complete_state.completions:
+    #             # Move to the first completion
+    #             buffer.complete_next()
+    #             # Now apply it
+    #             buffer.apply_completion(buffer.complete_state.current_completion)
+    #         elif current_completion:
+    #             # Apply the already-selected completion
+    #             buffer.apply_completion(current_completion)
+    #         else:
+    #             # No completions available, close menu
+    #             buffer.complete_state = None
+    #     # Don't submit if buffer is empty or only whitespace
+    #     elif buffer.text.strip():
+    #         # Normal submit
+    #         buffer.validate_and_handle()
+    #         # If empty, do nothing (don't submit)
 
-    # Alt+Enter for newlines (press ESC then Enter, or Option+Enter on Mac)
-    @kb.add("escape", "enter")
-    def _(event) -> None:
-        """Alt+Enter inserts a newline for multi-line input."""
-        event.current_buffer.insert_text("\n")
+    # # Alt+Enter for newlines (press ESC then Enter, or Option+Enter on Mac)
+    # @kb.add("escape", "enter")
+    # def _(event) -> None:
+    #     """Alt+Enter inserts a newline for multi-line input."""
+    #     event.current_buffer.insert_text("\n")
 
     # Ctrl+E to open in external editor
     @kb.add("c-e")

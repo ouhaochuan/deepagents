@@ -199,14 +199,16 @@ async def simple_cli(
         )
         console.print()
 
-    console.print("... Ready to code! What would you like to build?", style=COLORS["agent"])
+    # console.print("... Ready to code! What would you like to build?", style=COLORS["agent"])
+    console.print("... 准备就绪! 请描述您的需求：", style=COLORS["agent"])
 
     if sandbox_type:
         working_dir = get_default_working_dir(sandbox_type)
         console.print(f"  [dim]Local CLI directory: {Path.cwd()}[/dim]")
         console.print(f"  [dim]Code execution: Remote sandbox ({working_dir})[/dim]")
     else:
-        console.print(f"  [dim]Working directory: {Path.cwd()}[/dim]")
+        # console.print(f"  [dim]Working directory: {Path.cwd()}[/dim]")
+        console.print(f"  [dim]当前工作目录: {Path.cwd()}[/dim]")
 
     console.print()
 
@@ -223,9 +225,13 @@ async def simple_cli(
             "⌃E to open editor, ⌃T to toggle auto-approve, ⌃C to interrupt"
         )
     else:
+        # tips = (
+        #     "  Tips: Enter to submit, Alt+Enter (or Esc+Enter) for newline, "
+        #     "Ctrl+E to open editor, Ctrl+T to toggle auto-approve, Ctrl+C to interrupt"
+        # )
         tips = (
-            "  Tips: Enter to submit, Alt+Enter (or Esc+Enter) for newline, "
-            "Ctrl+E to open editor, Ctrl+T to toggle auto-approve, Ctrl+C to interrupt"
+            "  提示: Enter 换行, 先按Esc接着按Enter (或者 Alt+Enter) 提交, "
+            "Ctrl+E 打开文本编辑器, Ctrl+T 切换 auto-approve, Ctrl+C 中断输出"
         )
     console.print(tips, style=f"dim {COLORS['dim']}")
 
