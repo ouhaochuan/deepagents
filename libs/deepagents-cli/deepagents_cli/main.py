@@ -38,6 +38,8 @@ from deepagents_cli.tools import fetch_url, http_request, web_search, load_word,
 from deepagents_cli.ui import TokenTracker, show_help
 
 from deepagents.utils import load_env_with_fallback_verbose
+from deepagents_cli.sqlserver_database_tools import create_database_tools
+from deepagents_cli.mysql_database_tools import create_mysql_database_tools
 
 def check_cli_dependencies() -> None:
     """Check if CLI optional dependencies are installed."""
@@ -317,11 +319,39 @@ async def _run_agent_session(
     enable_shell = os.getenv("ENABLE_SHELL", "true")
     enable_subagents = os.getenv("ENABLE_SUBAGENTS", "true")
     enable_todos = os.getenv("ENABLE_TODOS", "true")
+    enable_sqlserver = os.getenv("ENABLE_SQLSERVER", "false")
+    enable_mysql = os.getenv("ENABLE_MySQL", "false")
     print(f"Enable memory: {enable_memory}")
     print(f"Enable skills: {enable_skills}")
     print(f"Enable shell: {enable_shell}")
     print(f"Enable subagents: {enable_subagents}")
     print(f"Enable todos: {enable_todos}")
+    print(f"Enable sqlserver: {enable_sqlserver}")
+    print(f"Enable mysql: {enable_mysql}")
+
+    if enable_sqlserver == "true":
+      print("Enabling SQL Server tools")
+      sql_server_connection_string = os.getenv("SQLSERVER_CONNECTION_STRING")
+      if sql_server_connection_string:
+        print(f"sql_server_connection_string: {sql_server_connection_string}")
+        sql_tools = create_database_tools(sql_server_connection_string)
+        if sql_tools: 
+            print("Adding SQL Server tools")
+            tools.extend(sql_tools)
+      else:
+        print("No SQL Server connection string found")
+    
+    if enable_mysql == "true":
+      print("Enabling MySQL tools")
+      mysql_connection_string = os.getenv("MYSQL_CONNECTION_STRING")
+      if mysql_connection_string:
+        print(f"mysql_connection_string: {mysql_connection_string}")
+        mysql_tools = create_mysql_database_tools(mysql_connection_string)
+        if mysql_tools: 
+            print("Adding MySQL tools")
+            tools.extend(mysql_tools)
+      else:
+        print("No MySQL connection string found")
 
     agent, composite_backend = create_cli_agent(
         model=model,
