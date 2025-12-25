@@ -13,10 +13,7 @@ if os.getenv('PROMPT_LOGGER_ENABLED') is None:
 
 class LogState(AgentState):
   """AgentState with log_request and log_response methods."""
-  call_count: int = 1
-
-  def __init__(self):
-    self.call_count = 1
+  call_count: int
 
 class PromptLoggerBaseMiddleware(AgentMiddleware):
 
@@ -85,10 +82,10 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
               md_content.append(f"")
           
           # 工具调用
-          if hasattr(msg, 'tool_calls') and msg.tool_calls:
+          if hasattr(msg, 'tool_calls') and msg.tool_calls: # type: ignore
               md_content.append(f"**Tool Calls**:")
               md_content.append(f"")
-              for j, tool_call in enumerate(msg.tool_calls):
+              for j, tool_call in enumerate(msg.tool_calls): # type: ignore
                   md_content.append(f"#### Tool Call {j+1}")
                   md_content.append(f"")
                   md_content.append(f"- **ID**: {tool_call.get('id', 'N/A')}")
@@ -107,8 +104,11 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       dated_log_dir = os.path.join(self.log_dir, date_dir)
       os.makedirs(dated_log_dir, exist_ok=True)
       log_file = os.path.join(dated_log_dir, f"{timestamp_filename}_{self.call_count:03d}_call.md")
-      with open(log_file, 'w', encoding='utf-8') as f:
-          f.write('\n'.join(md_content))
+      try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(md_content))
+      except Exception as e:
+          print(f"日志写入文件失败: {e}")
       
       print(f"Log saved to: {log_file}\n")
   
@@ -173,8 +173,12 @@ class PromptLoggerBaseMiddleware(AgentMiddleware):
       dated_log_dir = os.path.join(self.log_dir, date_dir)
       os.makedirs(dated_log_dir, exist_ok=True)
       log_file = os.path.join(dated_log_dir, f"{timestamp_filename}_{self.call_count:03d}_response.md")
-      with open(log_file, 'w', encoding='utf-8') as f:
-          f.write('\n'.join(md_content))
+
+      try:
+        with open(log_file, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(md_content))
+      except Exception as e:
+          print(f"日志写入文件失败: {e}")
       
       self.call_count += 1
       # print(f"call_count+1 = {self.call_count}")

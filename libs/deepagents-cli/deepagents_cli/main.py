@@ -40,6 +40,7 @@ from deepagents_cli.ui import TokenTracker, show_help
 from deepagents.utils import load_env_with_fallback_verbose
 from deepagents_cli.sqlserver_database_tools import create_database_tools
 from deepagents_cli.mysql_database_tools import create_mysql_database_tools
+from deepagents_cli.dm_database_tools import create_dm_database_tools
 
 def check_cli_dependencies() -> None:
     """Check if CLI optional dependencies are installed."""
@@ -321,6 +322,7 @@ async def _run_agent_session(
     enable_todos = os.getenv("ENABLE_TODOS", "true")
     enable_sqlserver = os.getenv("ENABLE_SQLSERVER", "false")
     enable_mysql = os.getenv("ENABLE_MySQL", "false")
+    enable_dm = os.getenv("ENABLE_DM", "false")
     print(f"Enable memory: {enable_memory}")
     print(f"Enable skills: {enable_skills}")
     print(f"Enable shell: {enable_shell}")
@@ -328,6 +330,7 @@ async def _run_agent_session(
     print(f"Enable todos: {enable_todos}")
     print(f"Enable sqlserver: {enable_sqlserver}")
     print(f"Enable mysql: {enable_mysql}")
+    print(f"Enable dm: {enable_dm}")
 
     if enable_sqlserver == "true":
       print("Enabling SQL Server tools")
@@ -352,6 +355,20 @@ async def _run_agent_session(
             tools.extend(mysql_tools)
       else:
         print("No MySQL connection string found")
+
+    if enable_dm == "true":
+      print("Enabling DM tools")
+      dm_connection_string = os.getenv("DM_CONNECTION_STRING")
+      if dm_connection_string:
+        print(f"dm_connection_string: {dm_connection_string}")
+        dm_tools = create_dm_database_tools(dm_connection_string)
+        if dm_tools: 
+          print(f"Adding DM tools")
+          tools.extend(dm_tools)
+      else:
+        print("No DM connection string found")
+
+    print(f"Tools: {tools}")
 
     agent, composite_backend = create_cli_agent(
         model=model,

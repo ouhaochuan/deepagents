@@ -27,19 +27,6 @@ def create_database_tools(connection_string):
     
     return tools
 
-# # SQL Server连接字符串格式
-# # 替换为你的实际连接信息
-# connection_string = "mssql+pyodbc://username:password@server:1433/database?driver=ODBC+Driver+17+for+SQL+Server"
-# 
-# db = SQLDatabase.from_uri(connection_string)
-# 
-# # 只创建3个基本工具，无LLM依赖
-# tools = [
-#     InfoSQLDatabaseTool(db=db),      # 列出表
-#     ListSQLDatabaseTool(db=db),      # 获取schema  
-#     QuerySQLDataBaseTool(db=db)      # 执行查询
-# ]
-
 def test_database_tools():
     """
     测试数据库工具创建方法
