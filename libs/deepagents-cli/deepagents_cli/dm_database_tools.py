@@ -52,7 +52,8 @@ def create_dm_database_tools(connection_string: str):
         """输入参数为空，仅用于获取数据库中的表列表"""
         empty_input: str = Field(
             default="", 
-            description="此参数为空字符串，仅作为占位符，因为工具需要至少一个参数"
+            description="此参数为空字符串，仅作为占位符，但是必填，因为工具需要至少一个参数",
+            required=True, 
         )
     @tool(args_schema=ListDatabaseToolInput)
     def dm_list_sql_database_tool(empty_input: str) -> str:
@@ -82,8 +83,8 @@ def create_dm_database_tools(connection_string: str):
     class InfoDatabaseToolInput(BaseModel):
         """输入参数为表名，用于获取指定表的结构信息"""
         table_name: str = Field(
-            ..., 
-            description="需要查询结构的表名"
+            description="需要查询结构的表名",
+            required=True,
         )
     @tool(args_schema=InfoDatabaseToolInput)
     def dm_info_sql_database_tool(table_name: str) -> str:
@@ -113,10 +114,10 @@ def create_dm_database_tools(connection_string: str):
                   ucc.COMMENTS
               FROM ALL_TAB_COLUMNS utc
               LEFT JOIN ALL_COL_COMMENTS ucc 
-                  ON utc.OWNER = ucc.OWNER 
+                  ON utc.OWNER = ucc.SCHEMA_NAME 
                   AND utc.TABLE_NAME = ucc.TABLE_NAME 
                   AND utc.COLUMN_NAME = ucc.COLUMN_NAME
-              WHERE utc.OWNER = UPPER(?)
+              WHERE ucc.SCHEMA_NAME = UPPER(?)
                   AND utc.TABLE_NAME = UPPER(?)
               ORDER BY utc.COLUMN_ID
             """
@@ -159,8 +160,8 @@ def create_dm_database_tools(connection_string: str):
     class QueryDatabaseToolInput(BaseModel):
         """输入参数为SQL查询语句，用于执行查询并返回结果"""
         query: str = Field(
-            ..., 
-            description="要执行的SQL查询语句，仅支持SELECT查询语句"
+            description="要执行的SQL查询语句，仅支持SELECT查询语句",
+            required=True,
         )
     @tool(args_schema=QueryDatabaseToolInput)
     def dm_query_sql_database_tool(query: str) -> str:
