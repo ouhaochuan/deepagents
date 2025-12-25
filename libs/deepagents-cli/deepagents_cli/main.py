@@ -368,8 +368,6 @@ async def _run_agent_session(
       else:
         print("No DM connection string found")
 
-    print(f"Tools: {tools}")
-
     agent, composite_backend = create_cli_agent(
         model=model,
         assistant_id=assistant_id,

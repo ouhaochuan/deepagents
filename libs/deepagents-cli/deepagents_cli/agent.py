@@ -278,43 +278,57 @@ def _format_execute_description(tool_call: ToolCall, _state: AgentState, _runtim
     command = args.get("command", "N/A")
     return f"Execute Command: {command}\nLocation: Remote Sandbox"
 
+def _format_sql_query_description(
+    tool_call: ToolCall, _state: AgentState, _runtime: Runtime
+) -> str:
+    """Format fetch_url tool call for approval prompt."""
+    args = tool_call["args"]
+    query = args.get("query", "unknown")
+
+    return f"⚠️即将执行查询: \n{query}"
+
 
 def _add_interrupt_on() -> dict[str, InterruptOnConfig]:
     """Configure human-in-the-loop interrupt_on settings for destructive tools."""
-    shell_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_shell_description,
-    }
+    shell_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_shell_description,
+    )
 
-    execute_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_execute_description,
-    }
+    execute_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_execute_description,
+    )
 
-    write_file_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_write_file_description,
-    }
+    write_file_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_write_file_description,
+    )
 
-    edit_file_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_edit_file_description,
-    }
+    edit_file_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_edit_file_description,
+    )
 
-    web_search_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_web_search_description,
-    }
+    web_search_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_web_search_description,
+    )
 
-    fetch_url_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_fetch_url_description,
-    }
+    fetch_url_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_fetch_url_description,
+    )
 
-    task_interrupt_config: InterruptOnConfig = {
-        "allowed_decisions": ["approve", "reject"],
-        "description": _format_task_description,
-    }
+    task_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description= _format_task_description,
+    )
+
+    sql_query_interrupt_config: InterruptOnConfig = InterruptOnConfig(
+        allowed_decisions=["approve", "reject"],
+        description=_format_sql_query_description,
+    )
     return {
         "shell": shell_interrupt_config,
         "execute": execute_interrupt_config,
@@ -323,6 +337,9 @@ def _add_interrupt_on() -> dict[str, InterruptOnConfig]:
         "web_search": web_search_interrupt_config,
         "fetch_url": fetch_url_interrupt_config,
         "task": task_interrupt_config,
+        "dm_query_sql_database_tool": sql_query_interrupt_config,
+        "mysql_query_sql_database_tool": sql_query_interrupt_config,
+        "sqlserver_query_sql_database_tool": sql_query_interrupt_config,
     }
 
 
