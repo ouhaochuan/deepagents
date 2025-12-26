@@ -48,15 +48,8 @@ def create_dm_database_tools(connection_string: str):
         包含数据库工具的列表
     """
 
-    class ListDatabaseToolInput(BaseModel):
-        """输入参数为空，仅用于获取数据库中的表列表"""
-        empty_input: str = Field(
-            default="", 
-            description="此参数为空字符串，仅作为占位符，但是必填，因为工具需要至少一个参数",
-            required=True, 
-        )
-    @tool(args_schema=ListDatabaseToolInput)
-    def dm_list_sql_database_tool(empty_input: str) -> str:
+    @tool
+    def dm_list_sql_database_tool() -> str:
         """列出数据库中的所有表名。"""
         try:
             # 连接到数据库
