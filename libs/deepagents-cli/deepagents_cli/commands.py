@@ -9,7 +9,7 @@ from .config import COLORS, DEEP_AGENTS_ASCII, console
 from .ui import TokenTracker, show_interactive_help
 
 
-def handle_command(command: str, agent, token_tracker: TokenTracker) -> str | bool:
+def handle_command(command: str, agent, token_tracker: TokenTracker, assistant_id: str) -> str | bool:
     """Handle slash commands. Returns 'exit' to exit, True if handled, False to pass to agent."""
     cmd = command.lower().strip().lstrip("/")
 
@@ -28,7 +28,8 @@ def handle_command(command: str, agent, token_tracker: TokenTracker) -> str | bo
         console.print(DEEP_AGENTS_ASCII, style=f"bold {COLORS['primary']}")
         console.print()
         console.print(
-            "... Fresh start! Screen cleared and conversation reset.", style=COLORS["agent"]
+            # "... Fresh start! Screen cleared and conversation reset.", style=COLORS["agent"]
+            f"... 【{assistant_id}】智能体新的开始！屏幕已清空，对话已重置。", style=COLORS["agent"]
         )
         console.print()
         return True

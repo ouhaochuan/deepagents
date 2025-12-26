@@ -268,7 +268,7 @@ async def execute_task(
             status.stop()
             spinner_active = False
         if not has_responded:
-            console.print("●【正式回复】", style=COLORS["agent"], markup=False, end="\n")
+            console.print(f"●【{assistant_id} 正式回复】", style=COLORS["agent"], markup=False, end="\n")
             has_responded = True
         
         # 判断是否为代码内容（可以根据实际需求扩展判断条件）

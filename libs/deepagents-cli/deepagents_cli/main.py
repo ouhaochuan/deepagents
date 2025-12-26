@@ -203,7 +203,7 @@ async def simple_cli(
         console.print()
 
     # console.print("... Ready to code! What would you like to build?", style=COLORS["agent"])
-    console.print("... 准备就绪! 请描述您的需求：", style=COLORS["agent"])
+    console.print(f"... 【{assistant_id}】智能体准备就绪! 请描述您的需求：", style=COLORS["agent"])
 
     if sandbox_type:
         working_dir = get_default_working_dir(sandbox_type)
@@ -264,7 +264,7 @@ async def simple_cli(
 
         # Check for slash commands first
         if user_input.startswith("/"):
-            result = handle_command(user_input, agent, token_tracker)
+            result = handle_command(user_input, agent, token_tracker, assistant_id)
             if result == "exit":
                 console.print("\nGoodbye!", style=COLORS["primary"])
                 break
