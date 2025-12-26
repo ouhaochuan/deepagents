@@ -50,7 +50,7 @@ def create_dm_database_tools(connection_string: str):
 
     @tool
     def dm_list_sql_database_tool() -> str:
-        """列出数据库中的所有表名。"""
+        """列出数据库中的所有表、视图和存储过程，并包含注释信息。"""
         try:
             # 连接到数据库
             conn_params = parse_connection_string(connection_string)
@@ -60,15 +60,81 @@ def create_dm_database_tools(connection_string: str):
             # 获取schema信息
             schema = conn_params.get('schema', 'SYSDBA')
             
-            # 查询指定schema下的所有表名
-            cursor.execute("SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = UPPER(?) ORDER BY TABLE_NAME", (schema,))
-            tables = [row[0] for row in cursor.fetchall()]
+            # 查询指定schema下的所有表、视图和存储过程
+            cursor.execute("""
+                SELECT 
+                    ao.OBJECT_NAME,
+                    ao.OBJECT_TYPE,
+                    atc.COMMENTS
+                FROM ALL_OBJECTS ao
+                LEFT JOIN ALL_TAB_COMMENTS atc ON ao.OBJECT_NAME = atc.TABLE_NAME 
+                    AND ao.OWNER = atc.OWNER
+                WHERE ao.OWNER = UPPER(?)
+                    AND ao.OBJECT_TYPE IN ('TABLE', 'VIEW', 'PROCEDURE')
+                ORDER BY 
+                    CASE ao.OBJECT_TYPE
+                        WHEN 'TABLE' THEN 1
+                        WHEN 'VIEW' THEN 2
+                        WHEN 'PROCEDURE' THEN 3
+                        ELSE 4
+                    END,
+                    ao.OBJECT_NAME
+            """, (schema,))
             
-            result = ", ".join(tables)
+            # 获取查询结果
+            rows = cursor.fetchall()
+            
+            if not rows:
+                cursor.close()
+                conn.close()
+                return "数据库中没有找到表、视图或存储过程"
+            
+            # 按对象类型分组处理结果
+            result_by_type = {
+                'TABLE': [],
+                'VIEW': [],
+                'PROCEDURE': []
+            }
+            
+            for row in rows:
+                obj_name, obj_type, comments = row
+                # 格式化每个对象的信息
+                obj_info = f"- {obj_name}"
+                if comments:
+                    obj_info += f" (注释: {comments})"
+                result_by_type[obj_type].append(obj_info)
+            
+            # 构建易于AI理解的格式化字符串
+            result_parts = []
+            
+            # 添加表信息
+            if result_by_type['TABLE']:
+                result_parts.append(f"表 (Tables) - 共 {len(result_by_type['TABLE'])} 个:")
+                result_parts.append("\n".join(result_by_type['TABLE']))
+            
+            # 添加视图信息
+            if result_by_type['VIEW']:
+                result_parts.append(f"\n视图 (Views) - 共 {len(result_by_type['VIEW'])} 个:")
+                result_parts.append("\n".join(result_by_type['VIEW']))
+            
+            # 添加存储过程信息
+            if result_by_type['PROCEDURE']:
+                result_parts.append(f"\n存储过程 (Procedures) - 共 {len(result_by_type['PROCEDURE'])} 个:")
+                result_parts.append("\n".join(result_by_type['PROCEDURE']))
+            
+            # 添加统计信息
+            total_count = sum(len(objs) for objs in result_by_type.values())
+            result_parts.append(f"\n总计: {total_count} 个对象 (表: {len(result_by_type['TABLE'])}, "
+                              f"视图: {len(result_by_type['VIEW'])}, "
+                              f"存储过程: {len(result_by_type['PROCEDURE'])})")
+            
+            result = "\n".join(result_parts)
+            
             cursor.close()
             conn.close()
             
-            return result if result else "数据库中没有表"
+            return result
+            
         except Exception as e:
             return f"错误: {str(e)}"
 
