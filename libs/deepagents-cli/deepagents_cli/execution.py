@@ -275,13 +275,21 @@ async def execute_task(
         if pending_text.strip().startswith("<template") or \
             pending_text.strip().startswith("<style") or \
             pending_text.strip().startswith("<script"):
-            # 使用 Syntax 渲染 Vue 或其他前端代码
-            syntax = Syntax(pending_text.rstrip(), "vue", theme="lightbulb", line_numbers=False, tab_size=2)
-            console.print(syntax, style=COLORS["agent"])
+            try:
+                # 使用 Syntax 渲染 Vue 或其他前端代码
+                syntax = Syntax(pending_text.rstrip(), "vue", theme="lightbulb", line_numbers=False, tab_size=2)
+                console.print(syntax, style=COLORS["agent"])
+            except Exception as e:
+                print(f"渲染代码块时出现异常: {str(e)}")
+                console.print(pending_text, style=COLORS["agent"])
         else:
-            # 否则使用 Markdown 渲染普通文本
-            markdown = Markdown(pending_text.rstrip())
-            console.print(markdown, style=COLORS["agent"])
+            try:
+                # 否则使用 Markdown 渲染普通文本
+                markdown = Markdown(pending_text.rstrip())
+                console.print(markdown, style=COLORS["agent"])
+            except Exception as e:
+                print(f"渲染文本时出现异常: {str(e)}")
+                console.print(pending_text, style=COLORS["agent"])
         pending_text = ""
 
     # Stream input - may need to loop if there are interrupts
