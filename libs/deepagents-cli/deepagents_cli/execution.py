@@ -194,7 +194,12 @@ async def execute_task(
     prompt_text, mentioned_files = parse_file_mentions(user_input)
 
     if mentioned_files:
-        context_parts = [prompt_text, "\n\n## Referenced Files\n"]
+        avoid_duplicate_promps = ["注意，以下文件内容已经包含在提示词中，不要调用read_file重复读取："]
+        for file_path in mentioned_files:
+            avoid_duplicate_promps.append(f"`{file_path.name}`")
+        context_parts = [prompt_text + "\n"]
+        context_parts.extend(avoid_duplicate_promps)
+        context_parts.append("\n## 通过@引用的文件路径及内容如下：")
         for file_path in mentioned_files:
             try:
                 content = file_path.read_text(encoding="utf-8")
@@ -207,7 +212,7 @@ async def execute_task(
                     content = "\n".join(lines[:10000]) + "\n... (file truncated)"
                     print(f"截断为 {lineCount} 行，这里应该要使用代码总结工具或者让AI分块读取直到找到需要的部分")
                 context_parts.append(
-                    f"\n### {file_path.name}\nPath: `{file_path}`\n```\n{content}\n```"
+                    f"\n### 文件路径: `{file_path}`\n```\n{content}\n```"
                 )
             except Exception as e:
                 context_parts.append(f"\n### {file_path.name}\n[Error reading file: {e}]")
